@@ -1,0 +1,1 @@
+DrOP TABLE Equation_attempts;
