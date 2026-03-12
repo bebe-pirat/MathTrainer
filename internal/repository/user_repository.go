@@ -21,6 +21,8 @@ type UserRepository interface {
 	GetUserById(ctx context.Context, id int) (*model.User, error)
 	GetAllUsers(ctx context.Context) ([]model.User, error)
 	UserExists(ctx context.Context, login string, password string) (bool, error)
+	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
+	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
 }
 
 type UserRepositoryStruct struct {
@@ -218,4 +220,90 @@ func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, pas
 	}
 
 	return true, nil
+}
+
+func (r *UserRepositoryStruct) GetStudentsByClass(ctx context.Context, classId int) ([]model.User, error) {
+	query := `
+		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
+		FROM users 
+		WHERE class_id = $1 AND roleId = 1
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, classId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]model.User, 0)
+	for rows.Next() {
+		var user model.User
+		err := rows.Scan(
+			&user.Id,
+			&user.Email,
+			&user.Login,
+			&user.PasswordHash,
+			&user.RoleId,
+			&user.Blocked,
+			&user.FullName,
+			&user.ClassId,
+			&user.CreatedAt,
+			&user.LastLogin,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (r *UserRepositoryStruct) GetTeachersBySchool(ctx context.Context, schoolId int) ([]model.User, error) {
+	query := `
+		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
+		FROM users JOIN classes ON Class_Id = classes.id
+		WHERE classes.school_id = $1
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, schoolId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]model.User, 0)
+	for rows.Next() {
+		var user model.User
+		err := rows.Scan(
+			&user.Id,
+			&user.Email,
+			&user.Login,
+			&user.PasswordHash,
+			&user.RoleId,
+			&user.Blocked,
+			&user.FullName,
+			&user.ClassId,
+			&user.CreatedAt,
+			&user.LastLogin,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
