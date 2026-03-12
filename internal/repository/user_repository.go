@@ -167,6 +167,7 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	users := make([]model.User, 0)
 	for rows.Next() {

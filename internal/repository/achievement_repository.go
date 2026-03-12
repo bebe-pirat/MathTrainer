@@ -83,7 +83,7 @@ func (r *AchievementRepositoryStruct) GetAllAchievement(ctx context.Context, e m
 	if err != nil {
 		return nil, err
 	}
-	rows.Close()
+	defer rows.Close()
 
 	achs := make([]model.Achievement, 0)
 	for rows.Next() {
