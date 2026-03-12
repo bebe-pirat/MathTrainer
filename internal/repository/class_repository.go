@@ -12,6 +12,7 @@ type ClassRepository interface {
 	DeleteClass(ctx context.Context, id int) error
 	GetClassById(ctx context.Context, id int) (*model.Class, error)
 	GetAllClasses(ctx context.Context) ([]model.Class, error)
+	GetClassesBySchoolId(ctx context.Context, schoolId int) ([]model.Class, error)
 }
 
 type ClassRepositoryStruct struct {
@@ -86,12 +87,49 @@ func (r *ClassRepositoryStruct) GetClassById(ctx context.Context, id int) (*mode
 	return &class, nil
 }
 
-func (r *SchoolRepositoryStruct) GetAllClasses(ctx context.Context) ([]model.Class, error) {
+func (r *ClassRepositoryStruct) GetAllClasses(ctx context.Context) ([]model.Class, error) {
 	query := `
 		SELECT id , name, grade, school_id, created_at
 		FROM classes
 	`
 	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var classes []model.Class
+	for rows.Next() {
+		var class model.Class
+		err := rows.Scan(
+			&class.Id,
+			&class.Name,
+			&class.Grade,
+			&class.SchoolId,
+			&class.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		classes = append(classes, class)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return classes, nil
+}
+
+func (r *ClassRepositoryStruct) GetClassesBySchoolId(ctx context.Context, schoolId int) ([]model.Class, error) {
+	query := `
+		SELECT id , name, grade, school_id, created_at
+		FROM classes
+		WHEER school_id = $1
+	`
+	rows, err := r.db.QueryContext(ctx, query, schoolId)
 	if err != nil {
 		return nil, err
 	}
