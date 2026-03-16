@@ -11,6 +11,10 @@ type StudentProgressRepository interface {
 	FinishLevel(ctx context.Context, studentID, levelID, stars int) (*model.StudentProgress, error)
 	GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error)
 	GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error)
+
+	// student stats
+	GetComplitedLevels(ctx context.Context, studentId int) (int, error)
+	GetTotalStars(ctx context.Context, studentId int) (int, error)
 }
 
 type StudentProgressRepositoryStruct struct {
@@ -23,7 +27,7 @@ func NewStudentProgressRepositoryStruct(db *sql.DB) *StudentProgressRepositorySt
 	}
 }
 
-func (r StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, levelId int) (int, error) {
+func (r *StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, levelId int) (int, error) {
 	query := `
 		INSERT INTO student_progress(student_id, level_id) 
 		VALUES ($1, $2)
@@ -39,7 +43,7 @@ func (r StudentProgressRepositoryStruct) StartLevel(ctx context.Context, student
 	return id, nil
 }
 
-func (r StudentProgressRepositoryStruct) FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error) {
+func (r *StudentProgressRepositoryStruct) FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error) {
 	query := `
 		UPDATE student_progress SET count_starts = $1, finished_at = $2
 		WHERE id = $3
@@ -55,7 +59,7 @@ func (r StudentProgressRepositoryStruct) FinishLevel(ctx context.Context, e mode
 	return &progress, nil
 }
 
-func (r StudentProgressRepositoryStruct) GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error) {
+func (r *StudentProgressRepositoryStruct) GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error) {
 	query := `
 		SELECT id, student_id, level_id, count_stars, finished_at
 		WHERE student_id = $1	
@@ -91,7 +95,7 @@ func (r StudentProgressRepositoryStruct) GetStudentProgress(ctx context.Context,
 	return progresses, nil
 }
 
-func (r StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error) {
+func (r *StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error) {
 	query := `
 		SELECT id, student_id, level_id, count_stars, finished_at
 		WHERE student_id = $1 AND level_id = $2
@@ -125,4 +129,36 @@ func (r StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, s
 	}
 
 	return progresses, nil
+}
+
+func (r *StudentProgressRepositoryStruct) GetComplitedLevels(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT COUNT(*) 
+		FROM student_progress
+		WHERE Student_progress.Student_Id = $1 and finished_at is not null
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func (r *StudentProgressRepositoryStruct) GetTotalStars(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT SUM(COALESCE(Count_stars, 0))
+		FROM student_progress
+		WHERE Student_progress.Student_Id = $1
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil	
 }
