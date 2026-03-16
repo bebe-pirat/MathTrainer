@@ -23,6 +23,8 @@ type UserRepository interface {
 	UserExists(ctx context.Context, login string, password string) (bool, error)
 	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
+
+	GetTotalStudentBySchoolId(ctx context.Context, schoolId int) (int, error)
 }
 
 type UserRepositoryStruct struct {
@@ -306,4 +308,20 @@ func (r *UserRepositoryStruct) GetTeachersBySchool(ctx context.Context, schoolId
 	}
 
 	return users, nil
+}
+
+func (r *UserRepositoryStruct) GetTotalStudentBySchoolId(ctx context.Context, schoolId int) (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM users JOIN classes ON users.class_id = classes.id
+		WHERE classes.school_id = $1
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, schoolId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
