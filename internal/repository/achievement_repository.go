@@ -10,7 +10,7 @@ type AchievementRepository interface {
 	CreateAchievement(ctx context.Context, e model.Achievement) (int, error)
 	UpdateAchievement(ctx context.Context, e model.Achievement) (*model.Achievement, error)
 	DeleteAchievement(ctx context.Context, id int) error
-	GetAllAchievement(ctx context.Context, e model.Achievement) ([]model.Achievement, error)
+	GetAllAchievement(ctx context.Context) ([]model.Achievement, error)
 	GetAchievementById(ctx context.Context, id int) (*model.Achievement, error)
 }
 
@@ -73,7 +73,7 @@ func (r *AchievementRepositoryStruct) DeleteAchievement(ctx context.Context, id 
 	return nil
 }
 
-func (r *AchievementRepositoryStruct) GetAllAchievement(ctx context.Context, e model.Achievement) ([]model.Achievement, error) {
+func (r *AchievementRepositoryStruct) GetAllAchievement(ctx context.Context) ([]model.Achievement, error) {
 	query := `
 		SELECT name, description
 		FROM achievements
