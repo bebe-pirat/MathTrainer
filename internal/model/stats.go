@@ -1,3 +1,4 @@
+package model
 
 type StudentStats struct {
 	TotalAttempts  int     `json:"total_attempts"`
@@ -9,7 +10,7 @@ type StudentStats struct {
 	StarsTotal      int `json:"stars_total"`
 
 	EquationTypes []ExtendedEquationTypeStats `json:"equation_type_stats"`
-	Achievements  []model.Achievement         `json:"achievements"`
+	Achievements  []Achievement               `json:"achievements"`
 
 	WeakTopics []string `json:"weak_types"`
 }
