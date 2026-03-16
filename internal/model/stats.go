@@ -10,17 +10,17 @@ type StudentStats struct {
 	StarsTotal      int `json:"stars_total"`
 
 	EquationTypes []ExtendedEquationTypeStats `json:"equation_type_stats"`
-	Achievements  []Achievement               `json:"achievements"`
+	Achievements  []AchievementOfStudent      `json:"achievements"`
 
 	WeakTopics []string `json:"weak_types"`
 }
 
 type ExtendedEquationTypeStats struct {
-	Type     int `json:"type"`
-	Attempts int `json:"attempts"`
-	Correct  int `json:"correct"`
-	Wrong    int `json:"wrong"`
-	Accuracy int `json:"accuracy_percent"`
+	Type     string `json:"type"`
+	Attempts int    `json:"attempts"`
+	Correct  int    `json:"correct"`
+	Wrong    int    `json:"wrong"`
+	Accuracy int    `json:"accuracy_percent"`
 }
 
 type ClassStats struct {
@@ -35,8 +35,8 @@ type ClassStats struct {
 }
 
 type EquationTypeStats struct {
-	Type     int `json:"type"`
-	Accuracy int `json:"accuracy_percent"`
+	Type     string `json:"type"`
+	Accuracy int    `json:"accuracy_percent"`
 }
 
 type StudentShortStats struct {
@@ -54,15 +54,10 @@ type SchoolStats struct {
 	Accuracy            float32 `json:"accuracy_percent"`
 
 	EquationTypes []EquationTypeStats `json:"equation_types"`
+	Classes       []ClassShortStats   `json:"classes"`
 }
 
 type ClassShortStats struct {
 	Name     string `json:"name"`
 	Accuracy int    `json:"accuracy_percent"`
-}
-
-type StatsService interface {
-	GetSchoolStats(schoolId int) (SchoolStats, error)
-	GetClassStats(classId int) (ClassStats, error)
-	GetStudentStats(studentId int) (StudentStats, error)
 }
