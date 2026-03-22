@@ -4,6 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -13,14 +14,14 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, e model.User) (int, error)
 
 	UpdateUser(ctx context.Context, e model.User) (*model.User, error)
-	BlockAndUnblockUser(ctx context.Context, id int) error
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
+	BlockUser(ctx context.Context, id int, blocked bool) error
 
 	DeleteUser(ctx context.Context, id int) error
 
 	GetUserById(ctx context.Context, id int) (*model.User, error)
 	GetAllUsers(ctx context.Context) ([]model.User, error)
-	UserExists(ctx context.Context, login string, password string) (bool, error)
+	UserExists(ctx context.Context, login string, password string) error
 	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
 
@@ -81,7 +82,7 @@ func (r *UserRepositoryStruct) UpdateUser(ctx context.Context, e model.User) (*m
 	return &user, nil
 }
 
-func (r *UserRepositoryStruct) BlockAndUnblockUser(ctx context.Context, id int, blocked bool) error {
+func (r *UserRepositoryStruct) BlockUser(ctx context.Context, id int, blocked bool) error {
 	query := `
 		UPDATE classes 
 		SET blocked = $1
@@ -203,7 +204,7 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 	return users, nil
 }
 
-func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, password string) (bool, error) {
+func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, password string) error {
 	query := `
 		SELECT id, password 
 		FROM users
@@ -214,14 +215,14 @@ func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, pas
 	var hashpassword []byte
 	err := r.db.QueryRowContext(ctx, query, login).Scan(&id, &password)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if err = bcrypt.CompareHashAndPassword(hashpassword, []byte(password)); err != nil {
-		return false, err
+		return errors.New("user or password is wrong")
 	}
 
-	return true, nil
+	return nil
 }
 
 func (r *UserRepositoryStruct) GetStudentsByClass(ctx context.Context, classId int) ([]model.User, error) {
