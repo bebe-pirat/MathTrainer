@@ -8,8 +8,8 @@ import (
 
 type LevelRepository interface {
 	GetAllLevels(ctx context.Context) ([]model.Level, error)
-	GetById(ctx context.Context, id int) (model.Level, error)
-	GetTestLevel(ctx context.Context) (model.Level, error)
+	GetById(ctx context.Context, id int) (*model.Level, error)
+	GetTestLevel(ctx context.Context) (*model.Level, error)
 }
 
 type LevelRepositoryStruct struct {
