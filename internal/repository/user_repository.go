@@ -26,6 +26,9 @@ type UserRepository interface {
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
 
 	GetTotalStudentBySchoolId(ctx context.Context, schoolId int) (int, error)
+
+	// student page
+	GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error)
 }
 
 type UserRepositoryStruct struct {
@@ -325,4 +328,27 @@ func (r *UserRepositoryStruct) GetTotalStudentBySchoolId(ctx context.Context, sc
 	}
 
 	return count, nil
+}
+
+func (r *UserRepositoryStruct) GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error) {
+	query := `
+		SELECT id, fullname, classes.name, schools.name 
+		FROM users 
+		JOIN classes ON users.class_id = classes.id
+		JOIN schools ON classes.school_id = schools.id
+		WHERE id = $1
+	`
+
+	var profile model.StudentProfile
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&profile.ID,
+		&profile.FullName,
+		&profile.ClassName,
+		&profile.SchoolName,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &profile, nil
 }
