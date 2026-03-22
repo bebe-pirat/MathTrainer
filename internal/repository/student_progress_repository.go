@@ -8,7 +8,8 @@ import (
 
 type StudentProgressRepository interface {
 	StartLevel(ctx context.Context, studentId, levelId int) (int, error)
-	FinishLevel(ctx context.Context, studentID, levelID, stars int) (*model.StudentProgress, error)
+	FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error)
+
 	GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error)
 	GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error)
 
@@ -160,5 +161,5 @@ func (r *StudentProgressRepositoryStruct) GetTotalStars(ctx context.Context, stu
 		return 0, err
 	}
 
-	return count, nil	
+	return count, nil
 }
