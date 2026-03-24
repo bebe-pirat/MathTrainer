@@ -12,3 +12,4 @@ type Recommendation struct {
 	EquationType string
 	Accuracy     float64
 }
+

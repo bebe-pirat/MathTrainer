@@ -1,23 +1,25 @@
 package service
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 )
 
-const length = 8
+const length = 10
 
 var possibleRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&-)(*")
-var countPossibleRunes int32 = int32(len(possibleRunes))
 
-func generateRandomPassword() string {
+func GenerateRandomPassword() (string, error) {
 	password := make([]rune, length)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i < length; i++ {
-		password[i] = possibleRunes[r.Int31n(countPossibleRunes)]
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(possibleRunes))))
+		if err != nil {
+			return "", err
+		}
+		
+		password[i] = possibleRunes[n.Int64()]
 	}
 
-	return string(password)
+	return string(password), nil
 }

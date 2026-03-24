@@ -11,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, e model.User) (int, error)
+	CreateUser(ctx context.Context, e model.User) (string, error)
 
 	UpdateUser(ctx context.Context, e model.User) (*model.User, error)
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
@@ -41,20 +41,20 @@ func NewUserRepositoryStruct(db *sql.DB) *UserRepositoryStruct {
 	}
 }
 
-func (r *UserRepositoryStruct) CreateUser(ctx context.Context, e model.User) (int, error) {
+func (r *UserRepositoryStruct) CreateUser(ctx context.Context, e model.User) (string, error) {
 	query := `
 		INSERT INTO users (email, login, password_hash, role_id, blocked, fullname, class_id, created_at) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id
+		RETURNING login
 	`
 
-	var id int
-	err := r.db.QueryRowContext(ctx, query).Scan(&id)
+	var login string
+	err := r.db.QueryRowContext(ctx, query).Scan(&login)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
-	return id, err
+	return login, err
 }
 
 func (r *UserRepositoryStruct) UpdateUser(ctx context.Context, e model.User) (*model.User, error) {
