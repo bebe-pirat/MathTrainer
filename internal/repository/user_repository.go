@@ -21,7 +21,7 @@ type UserRepository interface {
 
 	GetUserById(ctx context.Context, id int) (*model.User, error)
 	GetAllUsers(ctx context.Context) ([]model.User, error)
-	UserExists(ctx context.Context, login string, password string) error
+	UserExists(ctx context.Context, login string, password string) (int, error)
 	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
 
@@ -207,7 +207,7 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 	return users, nil
 }
 
-func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, password string) error {
+func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, password string) (int, error) {
 	query := `
 		SELECT id, password 
 		FROM users
@@ -218,14 +218,14 @@ func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, pas
 	var hashpassword []byte
 	err := r.db.QueryRowContext(ctx, query, login).Scan(&id, &password)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword(hashpassword, []byte(password)); err != nil {
-		return errors.New("user or password is wrong")
+		return 0, errors.New("user or password is wrong")
 	}
 
-	return nil
+	return id, nil
 }
 
 func (r *UserRepositoryStruct) GetStudentsByClass(ctx context.Context, classId int) ([]model.User, error) {
