@@ -13,6 +13,7 @@ import (
 )
 
 type TeacherService interface {
+	GetClassByTeacherId(ctx context.Context, teacherId int) (int, error)
 	GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error)
 
 	CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error)
@@ -30,6 +31,14 @@ func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo rep
 		userRepo:    userRepo,
 		attemptRepo: attemptRepo,
 	}
+}
+
+func (s *TeacherServiceStruct) GetClassByUserId(ctx context.Context, teacherId int) (int, error) {
+	if teacherId <=0 {
+		return 0, errors.New("invalid id")
+	}
+
+	return s.userRepo.GetClassByUserId(ctx, teacherId)
 }
 
 func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
