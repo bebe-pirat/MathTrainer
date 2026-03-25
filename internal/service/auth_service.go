@@ -1,6 +1,7 @@
 package service
 
 import (
+	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
 	"errors"
@@ -8,7 +9,7 @@ import (
 )
 
 type AuthService interface {
-	Login(ctx context.Context, login string, password string) (int, error)
+	Login(ctx context.Context, login string, password string) (*model.SessionData, error)
 	Logout(ctx context.Context, session_id int) error
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
 }
@@ -26,18 +27,29 @@ func NewAuthServiceStruct(userRepo repository.UserRepository, sessionRepo reposi
 }
 
 // пока что так
-func (s *AuthServiceStruct) Login(ctx context.Context, login string, password string) (int, error) {
+func (s *AuthServiceStruct) Login(ctx context.Context, login string, password string) (*model.SessionData, error) {
 	userId, err := s.userRepo.UserExists(ctx, login, password)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	sessionId, err := s.sessionRepo.CreateSession(ctx, userId, time.Now().Add(time.Hour*24))
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return sessionId, err
+	roleId, err := s.userRepo.GetRoleById(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionData := model.SessionData{
+		SessionID: sessionId,
+		UserID:    userId,
+		Role:      roleId,
+	}
+
+	return &sessionData, err
 }
 
 func (s *AuthServiceStruct) Logout(ctx context.Context, sessionId int) error {
