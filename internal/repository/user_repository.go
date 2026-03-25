@@ -20,10 +20,12 @@ type UserRepository interface {
 	DeleteUser(ctx context.Context, id int) error
 
 	GetUserById(ctx context.Context, id int) (*model.User, error)
+	GetRoleById(ctx context.Context, id int) (int, error)
 	GetAllUsers(ctx context.Context) ([]model.User, error)
 	UserExists(ctx context.Context, login string, password string) (int, error)
 	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
+	GetClassByUserId(ctx context.Context, userId int) (int, error)
 
 	GetTotalStudentBySchoolId(ctx context.Context, schoolId int) (int, error)
 
@@ -39,6 +41,36 @@ func NewUserRepositoryStruct(db *sql.DB) *UserRepositoryStruct {
 	return &UserRepositoryStruct{
 		db: db,
 	}
+}
+
+func (r *UserRepositoryStruct) GetClassByUserId(ctx context.Context, userId int) (int, error) {
+	query := `
+		SELECT class_id FROM users
+		WHERE id = $1;
+	`
+
+	var classId int
+	err := r.db.QueryRowContext(ctx, query, userId).Scan(&classId)
+	if err != nil {
+		return 0, err
+	}
+
+	return classId, nil
+}
+
+func (r *UserRepositoryStruct) GetRoleById(ctx context.Context, id int) (int, error) {
+	query := ` 
+		SELECT role_id FROM users
+		WHERE id = $1;
+	`
+
+	var roleId int
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&roleId)
+	if err != nil {
+		return 0, err
+	}
+
+	return roleId, nil
 }
 
 func (r *UserRepositoryStruct) CreateUser(ctx context.Context, e model.User) (string, error) {
