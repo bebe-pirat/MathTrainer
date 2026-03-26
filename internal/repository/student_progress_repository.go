@@ -7,7 +7,7 @@ import (
 )
 
 type StudentProgressRepository interface {
-	StartLevel(ctx context.Context, studentId, levelId int) (int, error)
+	StartLevel(ctx context.Context, studentId, levelId int) error
 	FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error)
 
 	GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error)
@@ -28,20 +28,21 @@ func NewStudentProgressRepositoryStruct(db *sql.DB) *StudentProgressRepositorySt
 	}
 }
 
-func (r *StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, levelId int) (int, error) {
+func (r *StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, levelId int) error {
 	query := `
 		INSERT INTO student_progress(student_id, level_id) 
 		VALUES ($1, $2)
-		RETURNING id	
 	`
 
-	var id int
-	err := r.db.QueryRowContext(ctx, query, studentId, levelId).Scan(&id)
+	res, err := r.db.ExecContext(ctx, query, studentId, levelId)
 	if err != nil {
-		return 0, err
+		return err
+	}
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
 	}
 
-	return id, nil
+	return nil
 }
 
 func (r *StudentProgressRepositoryStruct) FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error) {

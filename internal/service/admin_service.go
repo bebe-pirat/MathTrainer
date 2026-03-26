@@ -14,8 +14,9 @@ import (
 type AdminService interface {
 	CreateSchool(ctx context.Context, name string, address string) error
 	GetSchools(ctx context.Context) ([]model.School, error)
+	GetTeachersBySchoolId(ctx context.Context, schoolId int) ([]model.User, error)
 
-	CreateTeacher(ctx context.Context, fullName string, email string, schoolID int) (*model.User, error)
+	CreateTeacher(ctx context.Context, fullName, login, email string, schoolID int) (*model.User, error)
 	ChangeBlockingUser(ctx context.Context, userId int, blocked bool) error
 	GetAllUsers(ctx context.Context) ([]model.User, error)
 }
@@ -54,6 +55,13 @@ func (s *AdminServiceStruct) CreateSchool(ctx context.Context, name string, addr
 
 func (s *AdminServiceStruct) GetSchools(ctx context.Context) ([]model.School, error) {
 	return s.schoolRepo.GetAllSchools(ctx)
+}
+
+func (s *AdminServiceStruct) GetTeachersBySchoolId(ctx context.Context, schoolId int) ([]model.User, error) {
+	if schoolId <= 0 {
+		return nil, model.NewBadRequestError("invalid school id")
+	}
+	return s.GetTeachersBySchoolId(ctx, schoolId)
 }
 
 func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login, email string, schoolId, classId int) (*model.UserCredentials, error) {
