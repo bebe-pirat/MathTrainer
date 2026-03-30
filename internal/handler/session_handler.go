@@ -3,14 +3,16 @@ package handler
 import (
 	"MathTrainer/internal/model"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/securecookie"
 )
 
-var secret_key = os.Getenv("SECRET_KEY")
-var s = securecookie.New([]byte(secret_key), nil)
+var s *securecookie.SecureCookie
+
+func InitCookieStore(secretKey string) {
+	s = securecookie.New([]byte(secretKey), nil)
+}
 
 func getSessionFromCookie(r *http.Request) (*model.SessionData, error) {
 	cookie, err := r.Cookie("session_data")

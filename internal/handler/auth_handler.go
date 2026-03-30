@@ -2,22 +2,38 @@ package handler
 
 import (
 	"MathTrainer/internal/service"
+	"encoding/json"
 	"log/slog"
 	"net/http"
-
-	"github.com/gorilla/mux"
+	"strings"
 )
 
 type AuthHandler struct {
 	authService service.AuthService
 }
 
+func NewAuthHandler(authService service.AuthService) *AuthHandler {
+	return &AuthHandler{
+		authService: authService,
+	}
+}
+
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	login := vars["login"]
-	password := vars["password"]
+	var credentials struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&credentials); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		slog.Error("failed to decode JSON", "error", err)
+		return
+	}
+
+	login := strings.TrimSpace(credentials.Login)
+	password := credentials.Password
 
 	sessionData, err := h.authService.Login(ctx, login, password)
 	if err != nil {
@@ -31,8 +47,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to set cookie", "error", err)
 		return
 	}
+
 	slog.Info("user logged in successfully", "user_id", sessionData.UserID, "role", sessionData.Role)
 	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(sessionData); err != nil {
+		slog.Error("failed to turn to json session data")
+	}
 }
 
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {

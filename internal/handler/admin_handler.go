@@ -39,22 +39,20 @@ func (h *AdminHandler) GetSchools(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AdminHandler) GetTeachers(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	schoolId, err := strconv.Atoi(vars["school_id"])
+	ctx := r.Context()
+
+	schoolId, err := strconv.Atoi(r.URL.Query().Get("school_id"))
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("failed to convert school_id into int", "error", err)
-		return
+		schoolId = 0
 	}
 
-	ctx := r.Context()
 	teachers, err := h.adminService.GetTeachersBySchoolId(ctx, schoolId)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("malchika dura, netu uchiteley v schoole", "error", err)
 		return
 	}
-
+	
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -117,21 +115,20 @@ func (h *AdminHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	name, ok := vars["name"]
-	if !ok {
-		http.Error(w, "name is required", http.StatusBadRequest)
-		slog.Error("name is required")
-		return
+	type CreateSchoolRequest struct {
+		Name    string `json:"name"`
+		Address string `json:"address"`
 	}
-	address, ok := vars["address"]
-	if !ok {
-		http.Error(w, "address is required", http.StatusBadRequest)
-		slog.Error("address is required")
+
+	var req CreateSchoolRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	err := h.adminService.CreateSchool(ctx, name, address)
+	err = h.adminService.CreateSchool(ctx, req.Name, req.Address)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("something went wrong, i'm tired of this shit. ", "error", err)
@@ -170,17 +167,23 @@ func (h *AdminHandler) CreateTeacher(w http.ResponseWriter, r *http.Request) {
 		slog.Error("school_id is required")
 		return
 	}
+	classId, err := strconv.Atoi(vars["class_id"])
+	if !ok {
+		http.Error(w, "class_id is required", http.StatusBadRequest)
+		slog.Error("class_id is required")
+		return
+	}
 
-	user, err := h.adminService.CreateTeacher(ctx, fullname, login, email, schoolId)
+	user, err := h.adminService.CreateTeacher(ctx, fullname, login, email, schoolId, classId)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("something went wrong, i'm tired of this shit. ", "error", err)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if err = json.NewEncoder(w).Encode(user); err != nil {
 		slog.Error("something went wrong, i'm tired of this shit. ", "error", err)
 	}
