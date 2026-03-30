@@ -241,14 +241,14 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 
 func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, password string) (int, error) {
 	query := `
-		SELECT id, password 
+		SELECT id, password_hash 
 		FROM users
-		WHERE email = $1 OR login = $1
+		WHERE login = $1
 	`
 
 	var id int
 	var hashpassword []byte
-	err := r.db.QueryRowContext(ctx, query, login).Scan(&id, &password)
+	err := r.db.QueryRowContext(ctx, query, login).Scan(&id, &hashpassword)
 	if err != nil {
 		return 0, err
 	}
@@ -305,12 +305,20 @@ func (r *UserRepositoryStruct) GetStudentsByClass(ctx context.Context, classId i
 
 func (r *UserRepositoryStruct) GetTeachersBySchool(ctx context.Context, schoolId int) ([]model.User, error) {
 	query := `
-		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
-		FROM users JOIN classes ON Class_Id = classes.id
-		WHERE classes.school_id = $1
+		SELECT users.id, email, login, password_hash, role_id, blocked, fullName, class_id, users.created_at, last_login
+		FROM users 
+		JOIN classes ON class_id = classes.id 
+		WHERE role_id = 3
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, schoolId)
+	args := make([]interface{}, 0)
+
+	if schoolId > 0 {
+		query += "AND classes.school_id = $1"
+		args = append(args, schoolId)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +326,7 @@ func (r *UserRepositoryStruct) GetTeachersBySchool(ctx context.Context, schoolId
 
 	users := make([]model.User, 0)
 	for rows.Next() {
+		var lastLogin sql.NullTime
 		var user model.User
 		err := rows.Scan(
 			&user.Id,
@@ -329,11 +338,17 @@ func (r *UserRepositoryStruct) GetTeachersBySchool(ctx context.Context, schoolId
 			&user.FullName,
 			&user.ClassId,
 			&user.CreatedAt,
-			&user.LastLogin,
+			&lastLogin,
 		)
 
 		if err != nil {
 			return nil, err
+		}
+
+		if lastLogin.Valid {
+			user.LastLogin = &lastLogin.Time
+		} else {
+			user.LastLogin = nil
 		}
 
 		users = append(users, user)

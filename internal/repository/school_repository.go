@@ -7,11 +7,11 @@ import (
 )
 
 type SchoolRepository interface {
-	CreateSchool(ctx context.Context, e model.School) (int, error)
-	UpdateSchool(ctx context.Context, e model.School) (model.School, error)
+	CreateSchool(ctx context.Context, e model.School) error
+	UpdateSchool(ctx context.Context, e model.School) (*model.School, error)
 	DeleteSchool(ctx context.Context, id int) error
 	GetAllSchools(ctx context.Context) ([]model.School, error)
-	GetSchoolById(ctx context.Context, id int) (model.School, error)
+	GetSchoolById(ctx context.Context, id int) (*model.School, error)
 }
 
 type SchoolRepositoryStruct struct {
@@ -24,19 +24,20 @@ func NewSchoolRepositoryStruct(db *sql.DB) *SchoolRepositoryStruct {
 	}
 }
 
-func (r *SchoolRepositoryStruct) CreateSchool(ctx context.Context, e model.School) (int, error) {
+func (r *SchoolRepositoryStruct) CreateSchool(ctx context.Context, e model.School) error {
 	query := `
 			INSERT INTO schools(name, address, created_at)
-			VALUES($1, $2, $3)
-			RETURNING id`
+			VALUES($1, $2, $3)`
 
-	var id int
-	err := r.db.QueryRowContext(ctx, query, e.Name, e.Address, e.Created_at).Scan(&id)
+	res, err := r.db.ExecContext(ctx, query, e.Name, e.Address, e.Created_at)
 	if err != nil {
-		return 0, nil
+		return nil
+	}
+	if rows, err := res.RowsAffected(); err != nil && rows == 0 {
+		return sql.ErrNoRows
 	}
 
-	return id, nil
+	return nil
 }
 
 func (r *SchoolRepositoryStruct) UpdateSchool(ctx context.Context, e model.School) (*model.School, error) {
