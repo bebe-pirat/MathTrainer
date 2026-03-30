@@ -16,7 +16,7 @@ type AdminService interface {
 	GetSchools(ctx context.Context) ([]model.School, error)
 	GetTeachersBySchoolId(ctx context.Context, schoolId int) ([]model.User, error)
 
-	CreateTeacher(ctx context.Context, fullName, login, email string, schoolID int) (*model.User, error)
+	CreateTeacher(ctx context.Context, fullName, login, email string, schoolId, teacherId int) (*model.UserCredentials, error)
 	ChangeBlockingUser(ctx context.Context, userId int, blocked bool) error
 	GetAllUsers(ctx context.Context) ([]model.User, error)
 }
@@ -33,15 +33,15 @@ func NewAdminServiceStruct(userRepo repository.UserRepository, schoolRepo reposi
 	}
 }
 
-func (s *AdminServiceStruct) CreateSchool(ctx context.Context, name string, address string) (int, error) {
+func (s *AdminServiceStruct) CreateSchool(ctx context.Context, name string, address string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return 0, errors.New("bad request")
+		return errors.New("bad request")
 	}
 
 	address = strings.TrimSpace(address)
 	if address == "" {
-		return 0, errors.New("bad request")
+		return errors.New("bad request")
 	}
 
 	school := model.School{
@@ -58,10 +58,7 @@ func (s *AdminServiceStruct) GetSchools(ctx context.Context) ([]model.School, er
 }
 
 func (s *AdminServiceStruct) GetTeachersBySchoolId(ctx context.Context, schoolId int) ([]model.User, error) {
-	if schoolId <= 0 {
-		return nil, model.NewBadRequestError("invalid school id")
-	}
-	return s.GetTeachersBySchoolId(ctx, schoolId)
+	return s.userRepo.GetTeachersBySchool(ctx, schoolId)
 }
 
 func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login, email string, schoolId, classId int) (*model.UserCredentials, error) {
@@ -115,6 +112,10 @@ func (s *AdminServiceStruct) ChangeBlockingUser(ctx context.Context, userId int,
 	}
 
 	return s.userRepo.BlockUser(ctx, userId, blocked)
+}
+
+func (s *AdminServiceStruct) GetAllUsers(ctx context.Context) ([]model.User, error) {
+	return s.GetAllUsers(ctx)
 }
 
 // func (s *UserServiceStruct) CreateUser(ctx context.Context, e model.User) (int, error) {
