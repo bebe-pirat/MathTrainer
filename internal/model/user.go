@@ -3,16 +3,16 @@ package model
 import "time"
 
 type User struct {
-	Id           int
-	Email        string
-	Login        string
-	PasswordHash []byte
-	RoleId       int
-	Blocked      bool
-	FullName     string
-	ClassId      int
-	CreatedAt    time.Time
-	LastLogin    time.Time
+	Id           int       `json:"id"`
+	Email        string    `json:"email"`
+	Login        string    `json:"login"`
+	PasswordHash []byte    `json:"password_hash"`
+	RoleId       int       `json:"role_id"`
+	Blocked      bool      `json:"blocked"`
+	FullName     string    `json:"fullname"`
+	ClassId      int       `json:"class_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	LastLogin    *time.Time `json:"last_login"`
 }
 
 type UserCredentials struct {
