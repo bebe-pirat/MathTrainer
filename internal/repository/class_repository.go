@@ -127,7 +127,7 @@ func (r *ClassRepositoryStruct) GetClassesBySchoolId(ctx context.Context, school
 	query := `
 		SELECT id , name, grade, school_id, created_at
 		FROM classes
-		WHEER school_id = $1
+		WHERE school_id = $1
 	`
 	rows, err := r.db.QueryContext(ctx, query, schoolId)
 	if err != nil {

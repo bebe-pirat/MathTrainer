@@ -3,9 +3,9 @@ package model
 import "time"
 
 type Class struct {
-	Id        int
-	Name      string
-	Grade     int
-	SchoolId  int
-	CreatedAt time.Time
+	Id        int       `json:"id"`
+	Name      string    `json:"name"`
+	Grade     int       `json:"grade"`
+	SchoolId  int       `json:"school_id"`
+	CreatedAt time.Time `json:"created_at"`
 }

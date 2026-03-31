@@ -60,14 +60,16 @@ func main() {
 	userRepo := repository.NewUserRepositoryStruct(db)
 	sessionRepo := repository.NewSessionRepositoryStruct(db)
 	schoolRepo := repository.NewSchoolRepositoryStruct(db)
+	classRepo := repository.NewClassRepositoryStruct(db)
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
 	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo)
+	classService := service.NewClassServiceStruct(classRepo)
 
 	// Handler
 	authHandler := handler.NewAuthHandler(authService)
-	adminHandler := handler.NewAdminHandler(adminService)
+	adminHandler := handler.NewAdminHandler(adminService, classService)
 
 	mainRouter := mux.NewRouter()
 
@@ -75,7 +77,7 @@ func main() {
 	createAdminRouter(mainRouter, adminHandler)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // укажите порт вашего фронтенда
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -118,9 +120,11 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	adminRouter.HandleFunc("/schools", adminHandler.GetSchools).Methods("GET")
 	adminRouter.HandleFunc("/users", adminHandler.GetUsers).Methods("GET")
 	adminRouter.HandleFunc("/teachers", adminHandler.GetTeachers).Methods("GET")
+	adminRouter.HandleFunc("/classes", adminHandler.GetClassesBySchoolId).Methods("GET")
 
 	adminRouter.HandleFunc("/users/block", adminHandler.ChangeUserBlock).Methods("PUT")
 
+	adminRouter.HandleFunc("/classes", adminHandler.GetTeachers).Methods("POST")
 	adminRouter.HandleFunc("/schools", adminHandler.CreateSchool).Methods("POST")
 	adminRouter.HandleFunc("/teachers", adminHandler.CreateTeacher).Methods("POST")
 

@@ -55,10 +55,10 @@ func (s *ClassServiceStruct) CreateClass(ctx context.Context, name string, grade
 	return s.classRepo.CreateClass(ctx, class)
 }
 
-func (s *ClassServiceStruct) UpdateClass(ctx context.Context, classId int, name string) (*model.Class, error) {
+func (s *ClassServiceStruct) UpdateClass(ctx context.Context, classId int, name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return nil, errors.New("bad request")
+		return errors.New("bad request")
 	}
 
 	class := model.Class{
@@ -66,7 +66,11 @@ func (s *ClassServiceStruct) UpdateClass(ctx context.Context, classId int, name 
 		Name: name,
 	}
 
-	return s.classRepo.UpdateClass(ctx, class)
+	_, err := s.classRepo.UpdateClass(ctx, class)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *ClassServiceStruct) DeleteClass(ctx context.Context, classId int) error {
@@ -75,4 +79,4 @@ func (s *ClassServiceStruct) DeleteClass(ctx context.Context, classId int) error
 	}
 
 	return s.classRepo.DeleteClass(ctx, classId)
-}	
+}

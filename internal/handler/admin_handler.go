@@ -12,11 +12,13 @@ import (
 
 type AdminHandler struct {
 	adminService service.AdminService
+	classService service.ClassService
 }
 
-func NewAdminHandler(adminService service.AdminService) *AdminHandler {
+func NewAdminHandler(adminService service.AdminService, classService service.ClassService) *AdminHandler {
 	return &AdminHandler{
 		adminService: adminService,
+		classService: classService,
 	}
 }
 
@@ -52,7 +54,7 @@ func (h *AdminHandler) GetTeachers(w http.ResponseWriter, r *http.Request) {
 		slog.Error("malchika dura, netu uchiteley v schoole", "error", err)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -142,39 +144,22 @@ func (h *AdminHandler) CreateSchool(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateTeacher(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	fullname, ok := vars["fullname"]
-	if !ok {
-		http.Error(w, "name is required", http.StatusBadRequest)
-		slog.Error("name is required")
-		return
+	type CreateTeacherRequest struct {
+		Login    string `json:"login"`
+		Email    string `json:"email"`
+		Fullname string `json:"fullname"`
+		ClassId  int    `json:"class_id"`
 	}
-	email, ok := vars["email"]
-	if !ok {
-		http.Error(w, "email is required", http.StatusBadRequest)
-		slog.Error("email is required")
-		return
-	}
-	login, ok := vars["login"]
-	if !ok {
-		http.Error(w, "login is required", http.StatusBadRequest)
-		slog.Error("login is required")
-		return
-	}
-	schoolId, err := strconv.Atoi(vars["school_id"])
-	if !ok {
-		http.Error(w, "school_id is required", http.StatusBadRequest)
-		slog.Error("school_id is required")
-		return
-	}
-	classId, err := strconv.Atoi(vars["class_id"])
-	if !ok {
-		http.Error(w, "class_id is required", http.StatusBadRequest)
-		slog.Error("class_id is required")
+
+	var req CreateTeacherRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.adminService.CreateTeacher(ctx, fullname, login, email, schoolId, classId)
+	user, err := h.adminService.CreateTeacher(ctx, req.Fullname, req.Login, req.Email, req.ClassId)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("something went wrong, i'm tired of this shit. ", "error", err)
@@ -186,6 +171,63 @@ func (h *AdminHandler) CreateTeacher(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.NewEncoder(w).Encode(user); err != nil {
 		slog.Error("something went wrong, i'm tired of this shit. ", "error", err)
+	}
+}
+
+func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	type CreateClassRequest struct {
+		Name     string `json:"name"`
+		Grade    int    `json:"grade"`
+		SchoolId int    `json:"school_id"`
+	}
+
+	var req CreateClassRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	classId, err := h.classService.CreateClass(ctx, req.Name, req.Grade, req.SchoolId)
+	if err != nil {
+		http.Error(w, "failed to create new class", http.StatusInternalServerError)
+		slog.Error("failed to create class", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(classId); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
+
+func (h *AdminHandler) GetClassesBySchoolId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	schoolId, err := strconv.Atoi(r.URL.Query().Get("school_id"))
+	if err != nil {
+		http.Error(w, "school_id is required", http.StatusBadRequest)
+		slog.Error("school_id is required")
+		return
+	}
+
+	classes, err := h.classService.GetClassesBySchool(ctx, schoolId)
+	if err != nil {
+		http.Error(w, "failed to get classes", http.StatusInternalServerError)
+		slog.Error("failed to get classes", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(classes); err != nil {
+		slog.Error("serializtion failed", "error", err)
 	}
 }
 

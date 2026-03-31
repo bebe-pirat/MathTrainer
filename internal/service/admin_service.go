@@ -5,6 +5,7 @@ import (
 	"MathTrainer/internal/repository"
 	"context"
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -16,7 +17,7 @@ type AdminService interface {
 	GetSchools(ctx context.Context) ([]model.School, error)
 	GetTeachersBySchoolId(ctx context.Context, schoolId int) ([]model.User, error)
 
-	CreateTeacher(ctx context.Context, fullName, login, email string, schoolId, teacherId int) (*model.UserCredentials, error)
+	CreateTeacher(ctx context.Context, fullName, login, email string, classId int) (*model.UserCredentials, error)
 	ChangeBlockingUser(ctx context.Context, userId int, blocked bool) error
 	GetAllUsers(ctx context.Context) ([]model.User, error)
 }
@@ -61,7 +62,9 @@ func (s *AdminServiceStruct) GetTeachersBySchoolId(ctx context.Context, schoolId
 	return s.userRepo.GetTeachersBySchool(ctx, schoolId)
 }
 
-func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login, email string, schoolId, classId int) (*model.UserCredentials, error) {
+func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login, email string, classId int) (*model.UserCredentials, error) {
+	slog.Info("parameters", "fullname", fullName, "email", email, "login", login, "class_id", classId)
+
 	fullName = strings.TrimSpace(fullName)
 	if fullName == "" {
 		return nil, errors.New("bad request")
@@ -92,7 +95,7 @@ func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login,
 		Login:        login,
 		FullName:     fullName,
 		PasswordHash: passwordHash,
-		RoleId:       2, // тут убрать эту херню, заменить на что-то адекватное
+		RoleId:       3, // тут убрать эту херню, заменить на что-то адекватное, тупая я 2 роль - алмин, а 3 - учитель
 		Blocked:      false,
 		ClassId:      classId,
 		CreatedAt:    time.Now(),

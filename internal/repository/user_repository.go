@@ -81,7 +81,7 @@ func (r *UserRepositoryStruct) CreateUser(ctx context.Context, e model.User) (st
 	`
 
 	var login string
-	err := r.db.QueryRowContext(ctx, query).Scan(&login)
+	err := r.db.QueryRowContext(ctx, query, e.Email, e.Login, e.PasswordHash, e.RoleId, e.Blocked, e.FullName, e.ClassId, e.CreatedAt).Scan(&login)
 	if err != nil {
 		return "", err
 	}
