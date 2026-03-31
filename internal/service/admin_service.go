@@ -97,7 +97,7 @@ func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login,
 		PasswordHash: passwordHash,
 		RoleId:       3, // тут убрать эту херню, заменить на что-то адекватное, тупая я 2 роль - алмин, а 3 - учитель
 		Blocked:      false,
-		ClassId:      classId,
+		ClassId:      &classId,
 		CreatedAt:    time.Now(),
 	}
 
@@ -118,7 +118,7 @@ func (s *AdminServiceStruct) ChangeBlockingUser(ctx context.Context, userId int,
 }
 
 func (s *AdminServiceStruct) GetAllUsers(ctx context.Context) ([]model.User, error) {
-	return s.GetAllUsers(ctx)
+	return s.userRepo.GetAllUsers(ctx)
 }
 
 // func (s *UserServiceStruct) CreateUser(ctx context.Context, e model.User) (int, error) {

@@ -119,7 +119,7 @@ func (r *UserRepositoryStruct) UpdateUser(ctx context.Context, e model.User) (*m
 
 func (r *UserRepositoryStruct) BlockUser(ctx context.Context, id int, blocked bool) error {
 	query := `
-		UPDATE classes 
+		UPDATE users 
 		SET blocked = $1
 		WHERE id = $2
 	`
@@ -199,7 +199,7 @@ func (r *UserRepositoryStruct) GetUserById(ctx context.Context, id int) (*model.
 
 func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, error) {
 	query := `
-		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
+		SELECT id, email, login, password_hash, role_id, blocked, fullName, class_id, created_at, last_login
 		FROM users
 	`
 
@@ -212,6 +212,8 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 	users := make([]model.User, 0)
 	for rows.Next() {
 		var user model.User
+
+		var classId sql.NullInt64
 		err := rows.Scan(
 			&user.Id,
 			&user.Email,
@@ -220,10 +222,17 @@ func (r *UserRepositoryStruct) GetAllUsers(ctx context.Context) ([]model.User, e
 			&user.RoleId,
 			&user.Blocked,
 			&user.FullName,
-			&user.ClassId,
+			&classId,
 			&user.CreatedAt,
 			&user.LastLogin,
 		)
+
+		if !classId.Valid {
+			user.ClassId = nil
+		} else {
+			i := int(classId.Int64)
+			user.ClassId = &i
+		}
 
 		if err != nil {
 			return nil, err

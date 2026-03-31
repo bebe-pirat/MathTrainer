@@ -11,6 +11,7 @@ import (
 
 type ClassService interface {
 	GetClassesBySchool(ctx context.Context, schoolId int) ([]model.Class, error)
+	GetClasses(ctx context.Context) ([]model.Class, error)
 
 	CreateClass(ctx context.Context, name string, grade int, schoolId int) (int, error)
 	UpdateClass(ctx context.Context, classId int, name string) error
@@ -79,4 +80,8 @@ func (s *ClassServiceStruct) DeleteClass(ctx context.Context, classId int) error
 	}
 
 	return s.classRepo.DeleteClass(ctx, classId)
+}
+
+func (s *ClassServiceStruct) GetClasses(ctx context.Context) ([]model.Class, error) {
+	return s.classRepo.GetAllClasses(ctx)
 }

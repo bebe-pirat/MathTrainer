@@ -6,8 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type AdminHandler struct {
@@ -64,28 +62,21 @@ func (h *AdminHandler) GetTeachers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AdminHandler) ChangeUserBlock(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	blocked_string, ok := vars["blocked"]
-	if !ok {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("failed to convert school_id into int")
-		return
+	type UserBlockRequest struct {
+		UserId  int  `json:"user_id"`
+		Blocked bool `json:"blocked"`
 	}
 
-	var blocked bool = false
-	if blocked_string == "true" {
-		blocked = true
-	}
+	var req UserBlockRequest
 
-	userId, err := strconv.Atoi(vars["user_id"])
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("failed to convert school_id into int", "error", err)
+		http.Error(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	ctx := r.Context()
-	err = h.adminService.ChangeBlockingUser(ctx, userId, blocked)
+	err = h.adminService.ChangeBlockingUser(ctx, req.UserId, req.Blocked)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("failed to change is user blocked or not ", "error", err)
@@ -201,6 +192,8 @@ func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
+	slog.Info("hero")
+
 	if err := json.NewEncoder(w).Encode(classId); err != nil {
 		slog.Error("serializtion failed", "error", err)
 	}
@@ -209,18 +202,32 @@ func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) GetClassesBySchoolId(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	schoolId, err := strconv.Atoi(r.URL.Query().Get("school_id"))
-	if err != nil {
-		http.Error(w, "school_id is required", http.StatusBadRequest)
-		slog.Error("school_id is required")
-		return
-	}
+	schoolId := r.URL.Query().Get("school_id")
 
-	classes, err := h.classService.GetClassesBySchool(ctx, schoolId)
-	if err != nil {
-		http.Error(w, "failed to get classes", http.StatusInternalServerError)
-		slog.Error("failed to get classes", "error", err)
-		return
+	var classes interface{}
+	var err error
+
+	if schoolId != "" {
+		schoolId, err := strconv.Atoi(schoolId)
+		if err != nil {
+			http.Error(w, "invalid school_id", http.StatusBadRequest)
+			slog.Error("invalid school_id", "error", err)
+			return
+		}
+
+		classes, err = h.classService.GetClassesBySchool(ctx, schoolId)
+		if err != nil {
+			http.Error(w, "failed to get classes", http.StatusInternalServerError)
+			slog.Error("failed to get classes", "error", err)
+			return
+		}
+	} else {
+		classes, err = h.classService.GetClasses(ctx)
+		if err != nil {
+			http.Error(w, "failed to get classes", http.StatusInternalServerError)
+			slog.Error("failed to get classes", "error", err)
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -230,12 +237,3 @@ func (h *AdminHandler) GetClassesBySchoolId(w http.ResponseWriter, r *http.Reque
 		slog.Error("serializtion failed", "error", err)
 	}
 }
-
-// POST admin/school +
-// POST admin/teacher +
-
-// GET admin/schools/ +
-// GET admin/teachers?school_id= +
-
-// PUT admin/user/block?blocked=&user_id= +
-// GET admin/users +

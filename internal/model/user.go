@@ -10,7 +10,7 @@ type User struct {
 	RoleId       int        `json:"role_id"`
 	Blocked      bool       `json:"blocked"`
 	FullName     string     `json:"fullname"`
-	ClassId      int        `json:"class_id"`
+	ClassId      *int       `json:"class_id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	LastLogin    *time.Time `json:"last_login"`
 }

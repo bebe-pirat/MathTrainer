@@ -34,7 +34,7 @@ func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo rep
 }
 
 func (s *TeacherServiceStruct) GetClassByUserId(ctx context.Context, teacherId int) (int, error) {
-	if teacherId <=0 {
+	if teacherId <= 0 {
 		return 0, errors.New("invalid id")
 	}
 
@@ -82,7 +82,7 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 		PasswordHash: passwordHash,
 		RoleId:       1, // тут убрать эту херню, заменить на что-то адекватное
 		Blocked:      false,
-		ClassId:      classId,
+		ClassId:      &classId,
 		CreatedAt:    time.Now(),
 	}
 

@@ -124,7 +124,7 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 
 	adminRouter.HandleFunc("/users/block", adminHandler.ChangeUserBlock).Methods("PUT")
 
-	adminRouter.HandleFunc("/classes", adminHandler.GetTeachers).Methods("POST")
+	adminRouter.HandleFunc("/classes", adminHandler.CreateClass).Methods("POST")
 	adminRouter.HandleFunc("/schools", adminHandler.CreateSchool).Methods("POST")
 	adminRouter.HandleFunc("/teachers", adminHandler.CreateTeacher).Methods("POST")
 
