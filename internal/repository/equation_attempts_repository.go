@@ -196,10 +196,11 @@ func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyBySchoolId(ctx
 		SELECT equation_types.name, COALESCE(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 0)
 		from equation_attempts 
 		join equations on equations.id = equation_attempts.equation_id
-		join equation_types on equations.equation_type_id = equation_types.id
+		join equation_types on equations.equaition_type_id = equation_types.id
 		join users on equation_attempts.student_id = users.id
 		join classes on users.class_id = classes.id
 		where classes.school_id = $1
+		group by equation_types.name
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, schoolId)
@@ -229,12 +230,17 @@ func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyBySchoolId(ctx
 
 	return stats, nil
 }
-
 func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
 	query := `
-		SELECT users.id, users.fullname, COALESCE(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 0)
-		FROM equation_attempts JOIN users ON equation_attempts.student_id = users.id
+		SELECT 
+			users.id, 
+			users.fullname, 
+			COALESCE(ROUND(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 2), 0) as accuracy,
+			COUNT(DISTINCT equation_attempts.level_id) as levels_completed
+		FROM users
+		LEFT JOIN equation_attempts ON equation_attempts.student_id = users.id
 		WHERE users.class_id = $1
+		GROUP BY users.id, users.fullname
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, classId)
@@ -251,6 +257,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx co
 			&stat.StudentId,
 			&stat.Name,
 			&stat.Accuracy,
+			&stat.LevelsComplited,
 		)
 		if err != nil {
 			return nil, err
@@ -271,9 +278,10 @@ func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx 
 		SELECT equation_types.name, COALESCE(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 0)
 		from equation_attempts 
 		join equations on equations.id = equation_attempts.equation_id
-		join equation_types on equations.equation_type_id = equation_types.id
+		join equation_types on equations.equaition_type_id = equation_types.id
 		join users on users.id = equation_attempts.student_id
 		where users.class_id = $1
+		group by equation_types.name
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, classId)
@@ -345,8 +353,9 @@ func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx cont
 		(right * 100.0 / NULLIF(total, 0)) as accuracy
 		from equation_attempts 
 		join equations on equations.id = equation_attempts.equation_id
-		join equation_types on equations.equation_type_id = equation_types.id
-		where student_id = $1	
+		join equation_types on equations.equaition_type_id = equation_types.id
+		where student_id = $1
+		group by equation_types.name	
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, studentId)

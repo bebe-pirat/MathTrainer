@@ -33,7 +33,7 @@ func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo rep
 	}
 }
 
-func (s *TeacherServiceStruct) GetClassByUserId(ctx context.Context, teacherId int) (int, error) {
+func (s *TeacherServiceStruct) GetClassByTeacherId(ctx context.Context, teacherId int) (int, error) {
 	if teacherId <= 0 {
 		return 0, errors.New("invalid id")
 	}
@@ -94,26 +94,27 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 	return &model.UserCredentials{Login: login, Password: password}, nil
 }
 
-func (s *AdminServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) (*model.User, error) { // метод не раотает))))
+func (s *TeacherServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) error { // метод не раотает))))
 	fullName = strings.TrimSpace(fullName)
 	if fullName == "" {
-		return nil, errors.New("bad request")
+		return errors.New("bad request")
 	}
 
 	email = strings.TrimSpace(email)
 	if email == "" {
-		return nil, errors.New("bad request")
+		return errors.New("bad request")
 	}
 
 	student := model.User{
 		Email:    email,
 		FullName: fullName,
 	}
+	_, err := s.userRepo.UpdateUser(ctx, student)
 
-	return s.userRepo.UpdateUser(ctx, student)
+	return err
 }
 
-func (s *TeacherServiceStruct) DeleteUser(ctx context.Context, id int) error {
+func (s *TeacherServiceStruct) DeleteStudent(ctx context.Context, id int) error {
 	if id <= 0 {
 		return errors.New("bad request")
 	}

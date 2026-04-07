@@ -18,6 +18,32 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 	}
 }
 
+func (h *AuthHandler) CheckSession(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	
+	sessionData, err := getSessionFromCookie(r)
+	if err != nil {
+		http.Error(w, "failed to find session",http.StatusUnauthorized )
+		slog.Info("no active session found")
+		return
+	}
+	
+	valid, err := h.authService.ValidateSession(ctx, sessionData.SessionID)
+	if err != nil || !valid {
+		clearSessionCookie(w)
+		http.Error(w, "session expired or invalid",http.StatusUnauthorized )
+		slog.Info("invalid session", "session_id", sessionData.SessionID)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
+	if err = json.NewEncoder(w).Encode(sessionData); err != nil {
+		slog.Info("failed to serialize sessionData", "user_id", sessionData.UserID)
+	}
+	
+	slog.Info("session checked successfully", "user_id", sessionData.UserID)
+}
+
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -51,7 +77,15 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	slog.Info("user logged in successfully", "user_id", sessionData.UserID, "role", sessionData.Role)
 	w.WriteHeader(http.StatusOK)
 
-	if err = json.NewEncoder(w).Encode(sessionData); err != nil {
+	var response struct {
+		UserID int `json:"user_id"`
+		Role   int `json:"role"`
+	}
+
+	response.UserID = sessionData.UserID
+	response.Role = sessionData.Role
+
+	if err = json.NewEncoder(w).Encode(response); err != nil {
 		slog.Error("failed to turn to json session data")
 	}
 }

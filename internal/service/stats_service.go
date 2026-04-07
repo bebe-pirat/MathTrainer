@@ -4,6 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
+	"log/slog"
 )
 
 type StatsService interface {
@@ -86,6 +87,8 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 	if err != nil {
 		return nil, err
 	}
+
+	slog.Info("student short stats", students)
 
 	studentCount := len(students)
 

@@ -4,10 +4,12 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROLES } from "./constants";
 import AdminDashboard from "./pages/AdminDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import TeachersPage from "./pages/TeachersPage";
 import SchoolsPage from "./pages/SchoolsPage";
 import UsersPage from "./pages/UsersPage";
 import ClassesPage from "./pages/ClassesPage";
+import ClassStatistics from "./pages/ClassStatisticsPage";
 
 function App() {
     return (
@@ -79,7 +81,16 @@ function App() {
                         path="/teacher/dashboard"
                         element={
                             <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
-                                <div>Teacher</div>
+                                <TeacherDashboard/>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/teacher/class-statistics"
+                        element={
+                            <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                                <ClassStatistics/>
                             </ProtectedRoute>
                         }
                     />

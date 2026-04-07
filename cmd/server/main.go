@@ -61,20 +61,27 @@ func main() {
 	sessionRepo := repository.NewSessionRepositoryStruct(db)
 	schoolRepo := repository.NewSchoolRepositoryStruct(db)
 	classRepo := repository.NewClassRepositoryStruct(db)
+	attemptRepo := repository.NewEquationAttemptsRepositoryStruct(db)
+	progressRepo := repository.NewStudentProgressRepositoryStruct(db)
+	achievRepo := repository.NewAchievementOfStudentRepositoryStruct(db)
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
 	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo)
 	classService := service.NewClassServiceStruct(classRepo)
+	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
+	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo)
 
 	// Handler
 	authHandler := handler.NewAuthHandler(authService)
 	adminHandler := handler.NewAdminHandler(adminService, classService)
+	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
 
 	mainRouter := mux.NewRouter()
 
 	createAuthRouter(mainRouter, authHandler)
 	createAdminRouter(mainRouter, adminHandler)
+	createTeacherRouter(mainRouter, teacherHandler)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
@@ -131,9 +138,21 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	return adminRouter
 }
 
-// func createTeacherRouter() *mux.Router {
+func createTeacherRouter(router *mux.Router, teacherHandler *handler.TeacherHandler) *mux.Router {
+	teacherRouter := router.PathPrefix("/teacher").Subrouter()
 
-// }
+	teacherRouter.HandleFunc("/class/stats", teacherHandler.GetClassStats).Methods("GET")
+	teacherRouter.HandleFunc("/students", teacherHandler.GetStudents).Methods("GET")
+	teacherRouter.HandleFunc("/students/stats", teacherHandler.GetStudentById).Methods("GET")
+
+	teacherRouter.HandleFunc("/students", teacherHandler.CreateStudent).Methods("POST")
+
+	teacherRouter.HandleFunc("/students", teacherHandler.UpdateStudent).Methods("PUT")
+
+	teacherRouter.HandleFunc("/students", teacherHandler.DeleteStudent).Methods("DELETE")
+
+	return teacherRouter
+}
 
 // func createStudentRouter() *mux.Router {
 

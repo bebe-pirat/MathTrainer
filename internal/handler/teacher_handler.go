@@ -38,13 +38,14 @@ func (h *TeacherHandler) GetClassStats(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to get teacher's class", "error", err)
 		return
 	}
-
+	
 	classStats, err := h.statsService.GetClassStats(ctx, classId)
 	if err != nil {
 		http.Error(w, "failed to get class's stats", http.StatusInternalServerError)
 		slog.Error("failed to get class's stats", "error", err)
 		return
 	}
+	slog.Info("classStats", classStats)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

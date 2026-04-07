@@ -12,6 +12,7 @@ type AuthService interface {
 	Login(ctx context.Context, login string, password string) (*model.SessionData, error)
 	Logout(ctx context.Context, session_id int) error
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
+	ValidateSession(ctx context.Context, sessionID int) (bool, error)
 }
 
 type AuthServiceStruct struct {
@@ -24,6 +25,24 @@ func NewAuthServiceStruct(userRepo repository.UserRepository, sessionRepo reposi
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 	}
+}
+
+func (s *AuthServiceStruct) ValidateSession(ctx context.Context, sessionID int) (bool, error) {
+	session, err := s.sessionRepo.SessionExist(ctx, sessionID)
+	if err != nil {
+		return false, err
+	}
+
+	if session == nil {
+		return false, nil
+	}
+
+	if session.ExpiresAt.Before(time.Now()) {
+		s.sessionRepo.DeleteSession(ctx, sessionID)
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // пока что так
