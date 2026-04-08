@@ -5,36 +5,23 @@ import { BASE_URL } from "../constants";
 import { ROLES } from "../constants";
 
 function Login() {
-    const [loginInput, setLoginInput] = useState("");
+    const [login, setLogin] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const { login: authLogin, loading } = useAuth();
     const navigate = useNavigate();
-    const { login } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
 
-        const response = await fetch(BASE_URL + "/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({
-                login: loginInput,
-                password: password,
-            }),
-        });
-
-        if (!response.ok) {
-            alert("Ошибка входа");
-            return;
+        const result = await authLogin(login, password);
+        
+        if (result.success) {
+            redirectByRole(result.role, navigate);
+        } else {
+            setError(result.error || "Неверный логин или пароль");
         }
-
-        const data = await response.json();
-
-        login(data); 
-
-        redirectByRole(data.role, navigate);
     };
 
     return (

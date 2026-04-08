@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BASE_URL } from "../constants";
+import { BASE_URL } from "../../constants";
 
 function SchoolsPage() {
     const [schools, setSchools] = useState([]);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../constants";
+import { BASE_URL } from "../../constants";
 
 function ClassStatistics() {
     const navigate = useNavigate();
@@ -49,9 +49,6 @@ function ClassStatistics() {
     if (!stats) {
         return <div>Нет данных</div>;
     }
-
-    // const maxAttempts = Math.max(...stats.students.map(s => s.total_attempts), 0);
-    // const maxCorrect = Math.max(...stats.students.map(s => s.correct_answers), 0);
 
     return (
         <div>

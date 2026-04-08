@@ -3,13 +3,13 @@ import { AuthProvider } from "./AuthContext";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROLES } from "./constants";
-import AdminDashboard from "./pages/AdminDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import TeachersPage from "./pages/TeachersPage";
-import SchoolsPage from "./pages/SchoolsPage";
-import UsersPage from "./pages/UsersPage";
-import ClassesPage from "./pages/ClassesPage";
-import ClassStatistics from "./pages/ClassStatisticsPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeachersPage from "./pages/admin/TeachersPage";
+import SchoolsPage from "./pages/admin/SchoolsPage";
+import UsersPage from "./pages/admin/UsersPage";
+import ClassesPage from "./pages/admin/ClassesPage";
+import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
 
 function App() {
     return (
