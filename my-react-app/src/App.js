@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth, AuthProvider } from "./AuthContext";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROLES } from "./constants";
@@ -11,99 +11,121 @@ import UsersPage from "./pages/admin/UsersPage";
 import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
 
+function AppRoutes() {
+    const { user, loading } = useAuth();
+    
+    console.log("AppRoutes - user:", user); 
+    console.log("AppRoutes - loading:", loading);
+    if (loading) {
+        return <div>Загрузка...</div>;
+    }
+
+    console.log("User role:", user?.role);
+
+    return (
+        <Routes>
+            <Route 
+                path="/" 
+                element={
+                    user ? (
+                        user.role === ROLES.ADMIN ? <Navigate to="/admin/dashboard" /> :
+                        user.role === ROLES.TEACHER ? <Navigate to="/teacher/dashboard" /> :
+                        user.role === ROLES.STUDENT ? <Navigate to="/student/dashboard" /> :
+                        user.role === ROLES.HEAD ? <Navigate to="/director/dashboard" /> :
+                        <Navigate to="/login" />
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                } 
+            />
+            <Route path="/login" element={<Login />} />
+
+            <Route
+                path="/admin/dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <AdminDashboard/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin/teachers"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <TeachersPage/>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin/schools"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <SchoolsPage/>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin/users"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <UsersPage/>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin/classes"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <ClassesPage/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/student/dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                        <div>Student</div>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/teacher/dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                        <TeacherDashboard/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/teacher/class-statistics"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                        <ClassStatistics/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/director/dashboard"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <div>Director</div>
+                    </ProtectedRoute>
+                }
+            />
+        </Routes>
+    );
+}
+
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-
-                    <Route
-                        path="/admin/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <AdminDashboard/>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/admin/teachers"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <TeachersPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/schools"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <SchoolsPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/users"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <UsersPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/classes"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <ClassesPage/>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/admin/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-                                <AdminDashboard/>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/student/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-                                <div>Student</div>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
-                                <TeacherDashboard/>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/teacher/class-statistics"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
-                                <ClassStatistics/>
-                            </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/director/dashboard"
-                        element={
-                            <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
-                                <div>Director</div>
-                            </ProtectedRoute>
-                        }
-                    />
-                </Routes>
+                <AppRoutes />
             </BrowserRouter>
         </AuthProvider>
     );

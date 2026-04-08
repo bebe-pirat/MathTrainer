@@ -16,36 +16,36 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const checkSession = async () => {
-        try {
-            const response = await fetch(`${BASE_URL}/auth/session`, {
-                method: "GET",
-                credentials: "include",
-            });
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const response = await fetch(BASE_URL + "/auth/session", {
+                    method: "GET",
+                    credentials: "include",
+                });
 
-            if (!response.ok) {
+                if (!response.ok) {
+                    setUser(null);
+                    setLoading(false);
+                    return;
+                }
+
+                const data = await response.json();
+
+                setUser({
+                    user_id: Number(data.user_id),
+                    role_id: Number(data.role_id),
+                });
+            } catch (err) {
+                console.error(err);
                 setUser(null);
-                return false;
             }
 
-            const sessionData = await response.json();
-            
-            const userData = {
-                id: sessionData.user_id,
-                role: sessionData.role,
-                sessionId: sessionData.session_id
-            };
-            
-            setUser(userData);
-            return true;
-        } catch (err) {
-            console.error("Session check failed:", err);
-            setUser(null);
-            return false;
-        } finally {
             setLoading(false);
-        }
-    };
+        };
+
+        checkSession();
+    }, []);
 
     // Функция входа
     const login = async (login, password) => {
@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }) => {
 
             const data = await response.json();
             
-            // После успешного входа проверяем сессию
             await checkSession();
             
             return { success: true, role: data.role };
@@ -82,41 +81,26 @@ export const AuthProvider = ({ children }) => {
     };
 
     // Функция выхода
-    const logout = async () => {
+     const logout = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/auth/logout`, {
+            await fetch("/auth/logout", {
                 method: "POST",
                 credentials: "include",
             });
-
-            if (!response.ok) {
-                console.error("Logout failed");
-            }
-        } catch (err) {
-            console.error("Logout error:", err);
-        } finally {
-            setUser(null);
-            window.location.href = "/login";
+        } catch (e) {
+            console.error(e);
         }
-    };
 
-    useEffect(() => {
-        checkSession();
-    }, []);
-
-    const value = {
-        user,
-        loading,
-        error,
-        login,
-        logout,
-        checkSession,
-        isAuthenticated: !!user,
+        setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
+
+export function useAuth() {
+    return useContext(AuthContext);
+}

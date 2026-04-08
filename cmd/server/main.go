@@ -167,6 +167,7 @@ func createAuthRouter(router *mux.Router, authHandler *handler.AuthHandler) *mux
 
 	authRouter.HandleFunc("/login", authHandler.Login).Methods("POST")
 	authRouter.HandleFunc("/logout", authHandler.Logout).Methods("POST")
+	authRouter.HandleFunc("/session", authHandler.CheckSession).Methods("GET")
 
 	return authRouter
 }
