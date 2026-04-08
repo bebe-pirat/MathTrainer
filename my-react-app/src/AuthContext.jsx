@@ -1,20 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { BASE_URL } from "./constants";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within AuthProvider");
-    }
-    return context;
-};
-
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true); 
 
     useEffect(() => {
         const checkSession = async () => {
@@ -34,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
                 setUser({
                     user_id: Number(data.user_id),
-                    role_id: Number(data.role_id),
+                    role_id: Number(data.role),
                 });
             } catch (err) {
                 console.error(err);
@@ -47,43 +38,16 @@ export const AuthProvider = ({ children }) => {
         checkSession();
     }, []);
 
-    // Функция входа
-    const login = async (login, password) => {
-        setLoading(true);
-        setError(null);
-        
-        try {
-            const response = await fetch(`${BASE_URL}/auth/login`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ login, password }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Ошибка входа");
-            }
-
-            const data = await response.json();
-            
-            await checkSession();
-            
-            return { success: true, role: data.role };
-        } catch (err) {
-            setError(err.message);
-            return { success: false, error: err.message };
-        } finally {
-            setLoading(false);
-        }
+    const login = (data) => {
+        setUser({
+            user_id: Number(data.user_id),
+            role_id: Number(data.role),
+        });
     };
 
-    // Функция выхода
-     const logout = async () => {
+    const logout = async () => {
         try {
-            await fetch("/auth/logout", {
+            await fetch(BASE_URL + "/auth/logout", {
                 method: "POST",
                 credentials: "include",
             });
@@ -99,7 +63,7 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
-};
+}
 
 export function useAuth() {
     return useContext(AuthContext);

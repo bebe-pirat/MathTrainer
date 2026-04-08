@@ -20,6 +20,7 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 
 func (h *AuthHandler) CheckSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	slog.Info("i am here")
 	
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {

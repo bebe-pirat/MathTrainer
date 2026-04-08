@@ -10,6 +10,7 @@ import SchoolsPage from "./pages/admin/SchoolsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
+import HomePage from "./pages/HomePage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -24,20 +25,7 @@ function AppRoutes() {
 
     return (
         <Routes>
-            <Route 
-                path="/" 
-                element={
-                    user ? (
-                        user.role === ROLES.ADMIN ? <Navigate to="/admin/dashboard" /> :
-                        user.role === ROLES.TEACHER ? <Navigate to="/teacher/dashboard" /> :
-                        user.role === ROLES.STUDENT ? <Navigate to="/student/dashboard" /> :
-                        user.role === ROLES.HEAD ? <Navigate to="/director/dashboard" /> :
-                        <Navigate to="/login" />
-                    ) : (
-                        <Navigate to="/login" />
-                    )
-                } 
-            />
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
 
             <Route
