@@ -38,7 +38,7 @@ func (h *TeacherHandler) GetClassStats(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to get teacher's class", "error", err)
 		return
 	}
-	
+
 	classStats, err := h.statsService.GetClassStats(ctx, classId)
 	if err != nil {
 		http.Error(w, "failed to get class's stats", http.StatusInternalServerError)
@@ -86,6 +86,38 @@ func (h *TeacherHandler) GetStudents(w http.ResponseWriter, r *http.Request) {
 		slog.Error("serialization faild", "error", err)
 	}
 }
+
+// func (h *TeacherHandler) GetStudents(w http.ResponseWriter, r *http.Request) {
+// 	ctx := r.Context()
+
+// 	sessionData, err := getSessionFromCookie(r)
+// 	if err != nil {
+// 		http.Error(w, "invalid session", http.StatusUnauthorized)
+// 		slog.Error("failed to get session from cookie", "error", err)
+// 		return
+// 	}
+
+// 	classId, err := h.teacherService.GetClassByTeacherId(ctx, sessionData.UserID)
+// 	if err != nil {
+// 		http.Error(w, "failed to get teacher's class", http.StatusInternalServerError)
+// 		slog.Error("failed to get teacher's class", "error", err)
+// 		return
+// 	}
+
+// 	students, err := h.teacherService.GetClassStudents(ctx, classId)
+// 	if err != nil {
+// 		http.Error(w, "failed to get students", http.StatusInternalServerError)
+// 		slog.Error("failed to get students", "error", err)
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+
+// 	if err := json.NewEncoder(w).Encode(students); err != nil {
+// 		slog.Error("serialization faild", "error", err)
+// 	}
+// }
 
 func (h *TeacherHandler) GetStudentById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -141,6 +173,7 @@ func (h *TeacherHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(student); err != nil {
 		slog.Error("serialization faild", "error", err)
 	}
+	slog.Info("created")
 }
 
 func (h *TeacherHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {

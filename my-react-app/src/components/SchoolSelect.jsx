@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { fetchSchools } from '../services/schoolService';
+import { useEffect, useState } from 'react';
+import { fetchSchools } from '../services/SchoolServices';
 
 export const SchoolSelect = ({ value, onChange }) => {
     const [schools, setSchools] = useState([]);

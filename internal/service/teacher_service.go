@@ -14,7 +14,8 @@ import (
 
 type TeacherService interface {
 	GetClassByTeacherId(ctx context.Context, teacherId int) (int, error)
-	GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error)
+	GetClassStudents(ctx context.Context, classId int) ([]model.User, error)
+	//GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error)
 
 	CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error)
 	UpdateStudent(ctx context.Context, studentId int, fullName, email string) error
@@ -41,12 +42,20 @@ func (s *TeacherServiceStruct) GetClassByTeacherId(ctx context.Context, teacherI
 	return s.userRepo.GetClassByUserId(ctx, teacherId)
 }
 
-func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
+// func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
+// 	if classId <= 0 {
+// 		return nil, errors.New("invalid id")
+// 	}
+
+// 	return s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
+// }
+
+func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.User, error) {
 	if classId <= 0 {
 		return nil, errors.New("invalid id")
 	}
 
-	return s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
+	return s.userRepo.GetStudentsByClass(ctx, classId)
 }
 
 func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error) {
@@ -75,7 +84,7 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 		return nil, err
 	}
 
-	teacher := model.User{
+	student := model.User{
 		Email:        email,
 		Login:        login,
 		FullName:     fullName,
@@ -86,7 +95,7 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 		CreatedAt:    time.Now(),
 	}
 
-	login, err = s.userRepo.CreateUser(ctx, teacher)
+	login, err = s.userRepo.CreateUser(ctx, student)
 	if err != nil {
 		return nil, err
 	}

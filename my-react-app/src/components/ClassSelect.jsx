@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchClasses } from '../services/schoolService';
+import { fetchClasses } from '../services/SchoolServices';
 
 export const ClassSelect = ({ schoolId, value, onChange }) => {
     const [classes, setClasses] = useState([]);
@@ -8,27 +8,31 @@ export const ClassSelect = ({ schoolId, value, onChange }) => {
     useEffect(() => {
         if (!schoolId) {
             setClasses([]);
-            onChange?.(''); 
             return;
         }
 
-        const loadClasses = async () => {
-            setLoading(true);
-            try {
-                const data = await fetchClasses(schoolId);
+        setLoading(true);
+        fetchClasses(schoolId)
+            .then(data => {
                 setClasses(data);
-            } finally {
+            })
+            .catch(error => {
+                console.error("Error loading classes:", error);
+                setClasses([]);
+            })
+            .finally(() => {
                 setLoading(false);
-            }
-        };
+            });
+    }, [schoolId]); 
 
-        loadClasses();
-    }, [schoolId, onChange]); 
+    const handleChange = (e) => {
+        onChange(e.target.value);
+    };
 
     return (
         <select 
             value={value} 
-            onChange={(e) => onChange(e.target.value)}
+            onChange={handleChange}
             disabled={!schoolId || loading}
         >
             <option value="">

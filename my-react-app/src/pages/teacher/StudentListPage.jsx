@@ -1,258 +1,208 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../../constants";
+import { BASE_URL } from "./../../constants";
 import { SchoolSelect } from "../../components/SchoolSelect";
 import { ClassSelect } from "../../components/ClassSelect";
 
 function StudentsPage() {
-    const navigate = useNavigate();
     const [students, setStudents] = useState([]);
-    const [email, setEmail] = useState("");
-    const [login, setLogin] = useState("");
-    const [fullname, setFullname] = useState("");
-    const [classId, setClassId] = useState(0);
-    const [selectedSchoolId, setSelectedSchoolId] = useState("");
-    const [showCredentialsModal, setShowCredentialsModal] = useState(false);
-    const [generatedCredentials, setGeneratedCredentials] = useState({ login: "", password: "" });
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [selectedSchool, setSelectedSchool] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const [form, setForm] = useState({
+        id: null,
+        fullname: "",
+        login: "",
+        email: "",
+        class_id: "", 
+    });
 
     const fetchStudents = async () => {
         try {
-            const response = await fetch(BASE_URL + "/admin/students", {
-                method: "GET",
+            const res = await fetch(`${BASE_URL}/teacher/students`, {
                 credentials: "include",
             });
-
-            if (!response.ok) {
-                throw new Error("Ошибка загрузки студентов");
-            }
-
-            const data = await response.json();
-            setStudents(data);
+            const data = await res.json();
             console.log(data);
+            setStudents(data);
         } catch (err) {
-            setError(err.message);
-            console.error(err);
-        } finally {
-            setLoading(false);
+            console.error("Ошибка загрузки студентов:", err);
+            alert("Ошибка загрузки студентов");
         }
-    };
-
-    const handleCreate = async (e) => {
-        e.preventDefault();
-
-        try {
-            const response = await fetch(BASE_URL + "/admin/students", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    email: email,
-                    login: login,
-                    fullname: fullname,
-                    class_id: classId,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                alert(errorData.message || "Ошибка создания студента");
-                return;
-            }
-
-            const data = await response.json();
-            
-            setGeneratedCredentials({
-                login: data.login || login,
-                password: data.password || "Пароль сгенерирован"
-            });
-            setShowCredentialsModal(true);
-
-            // Очищаем форму
-            setEmail("");
-            setLogin("");
-            setFullname("");
-            setClassId(0);
-            setSelectedSchoolId("");
-
-            // Обновляем список
-            fetchStudents();
-        } catch (err) {
-            console.error(err);
-            alert("Ошибка при создании студента");
-        }
-    };
-
-    const handleDelete = async (studentId) => {
-        if (!window.confirm("Вы уверены, что хотите удалить этого студента?")) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`${BASE_URL}/admin/students/${studentId}`, {
-                method: "DELETE",
-                credentials: "include",
-            });
-
-            if (!response.ok) {
-                throw new Error("Ошибка удаления студента");
-            }
-
-            // Обновляем список
-            fetchStudents();
-        } catch (err) {
-            console.error(err);
-            alert("Ошибка при удалении студента");
-        }
-    };
-
-    const handleBlock = async (studentId, isBlocked) => {
-        try {
-            const response = await fetch(`${BASE_URL}/admin/students/${studentId}/block`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ blocked: !isBlocked }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Ошибка изменения статуса");
-            }
-
-            // Обновляем список
-            fetchStudents();
-        } catch (err) {
-            console.error(err);
-            alert("Ошибка при изменении статуса студента");
-        }
-    };
-
-    const closeModal = () => {
-        setShowCredentialsModal(false);
-        setGeneratedCredentials({ login: "", password: "" });
     };
 
     useEffect(() => {
         fetchStudents();
     }, []);
 
-    if (loading) {
-        return <div>Загрузка студентов...</div>;
-    }
+    const handleChange = (field, value) => {
+        setForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
 
-    if (error) {
-        return (
-            <div>
-                <p>Ошибка: {error}</p>
-                <button onClick={() => navigate("/admin/dashboard")}>Вернуться в панель</button>
-            </div>
-        );
-    }
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const method = form.id ? "PUT" : "POST";
+        
+        let url = `${BASE_URL}/teacher/students`;
+        if (form.id && method === "PUT") {
+            url = `${BASE_URL}/teacher/students/${form.id}`;
+        }
+
+        const body = {
+            fullname: form.fullname,
+            login: form.login,
+            email: form.email,
+            class_id: form.class_id ? Number(form.class_id) : 0,
+        };
+
+        console.log("Sending request:", method, url, body);
+
+        try {
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(body),
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error("Server error:", errorText);
+                alert(`Ошибка: ${res.status}`);
+                return;
+            }
+
+            const data = await res.json();
+            
+            alert(form.id ? "Студент обновлен!" : "Студент создан!");
+            
+            if (!form.id && data.password) {
+                alert(`Логин: ${data.login}\nПароль: ${data.password}\nСохраните пароль!`);
+            }
+            
+            resetForm();
+            await fetchStudents();
+        } catch (err) {
+            console.error("Network error:", err);
+            alert("Ошибка сети: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("Вы уверены, что хотите удалить этого студента?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/teacher/students/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+
+            if (!res.ok) {
+                alert("Ошибка удаления");
+                return;
+            }
+
+            alert("Студент удален!");
+            await fetchStudents();
+        } catch (err) {
+            console.error("Error deleting:", err);
+            alert("Ошибка при удалении");
+        }
+    };
+
+    const handleEdit = (student) => {
+        setForm({
+            id: student.id,
+            fullname: student.fullname,
+            login: student.login,
+            email: student.email,
+            class_id: String(student.class_id), // Преобразуем в строку для select
+        });
+        
+        if (student.school_id) {
+            setSelectedSchool(String(student.school_id));
+        }
+    };
+
+    const resetForm = () => {
+        setForm({
+            id: null,
+            fullname: "",
+            login: "",
+            email: "",
+            class_id: "",
+        });
+        setSelectedSchool("");
+    };
 
     return (
         <div>
             <h2>Студенты</h2>
 
-            {/* Форма создания студента */}
-            <form onSubmit={handleCreate}>
-                <h3>Создать нового студента</h3>
-                
+            <form onSubmit={handleSubmit}>
                 <input
-                    value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
                     placeholder="ФИО"
+                    value={form.fullname}
+                    onChange={(e) => handleChange("fullname", e.target.value)}
                     required
                 />
 
                 <input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Логин"
+                    value={form.login}
+                    onChange={(e) => handleChange("login", e.target.value)}
+                    required
+                />
+
+                <input
                     placeholder="Почта"
                     type="email"
-                    required
-                />
-
-                <input
-                    value={login}
-                    onChange={(e) => setLogin(e.target.value)}
-                    placeholder="Логин"
+                    value={form.email}
+                    onChange={(e) => handleChange("email", e.target.value)}
                     required
                 />
 
                 <SchoolSelect 
-                    value={selectedSchoolId} 
-                    onChange={setSelectedSchoolId}
+                    value={selectedSchool} 
+                    onChange={setSelectedSchool}
                 />
 
                 <ClassSelect 
-                    schoolId={selectedSchoolId}
-                    value={classId} 
-                    onChange={setClassId}
+                    schoolId={selectedSchool}
+                    value={form.class_id} 
+                    onChange={(value) => handleChange("class_id", value)}
                 />
 
-                <button type="submit">Создать студента</button>
+                <button type="submit" disabled={loading}>
+                    {loading ? "Загрузка..." : (form.id ? "Обновить" : "Создать")}
+                </button>
+
+                {form.id && (
+                    <button type="button" onClick={resetForm}>
+                        Отмена
+                    </button>
+                )}
             </form>
 
-            {/* Модальное окно с учетными данными */}
-            {showCredentialsModal && (
-                <div style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        backgroundColor: "white",
-                        padding: "20px",
-                        borderRadius: "5px",
-                        maxWidth: "400px",
-                        width: "100%"
-                    }}>
-                        <button 
-                            onClick={closeModal}
-                            style={{ float: "right" }}
-                        >
-                            ✕
-                        </button>
-                        <h3>Студент успешно создан!</h3>
-                        <div>
-                            <strong>Логин:</strong> {generatedCredentials.login}
-                        </div>
-                        <div>
-                            <strong>Пароль:</strong> {generatedCredentials.password}
-                        </div>
-                        <div style={{ marginTop: "10px", color: "red" }}>
-                            Сохраните эти данные. Пароль будет отображаться только один раз!
-                        </div>
-                        <button onClick={closeModal}>Закрыть</button>
-                    </div>
-                </div>
-            )}
-
-            {/* Таблица со студентами */}
             <h3>Список студентов</h3>
             <table border="1" cellPadding="8" cellSpacing="0">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>ФИО</th>
-                        <th>Почта</th>
                         <th>Логин</th>
-                        <th>Заблокирован</th>
+                        <th>Почта</th>
                         <th>ID Класса</th>
-                        <th>Создан</th>
-                        <th>Последний вход</th>
                         <th>Действия</th>
                     </tr>
                 </thead>
@@ -261,27 +211,14 @@ function StudentsPage() {
                         <tr key={student.id}>
                             <td>{student.id}</td>
                             <td>{student.fullname}</td>
-                            <td>{student.email}</td>
                             <td>{student.login}</td>
-                            <td>{student.blocked ? "Да" : "Нет"}</td>
+                            <td>{student.email}</td>
                             <td>{student.class_id}</td>
-                            <td>{student.created_at}</td>
-                            <td>{student.last_login || "Никогда"}</td>
                             <td>
-                                <button 
-                                    onClick={() => handleBlock(student.id, student.blocked)}
-                                    style={{
-                                        backgroundColor: student.blocked ? "#4CAF50" : "#ff9800",
-                                        color: "white",
-                                        marginRight: "5px"
-                                    }}
-                                >
-                                    {student.blocked ? "Разблокировать" : "Заблокировать"}
+                                <button onClick={() => handleEdit(student)}>
+                                    Редактировать
                                 </button>
-                                <button 
-                                    onClick={() => handleDelete(student.id)}
-                                    style={{ backgroundColor: "#f44336", color: "white" }}
-                                >
+                                <button onClick={() => handleDelete(student.id)}>
                                     Удалить
                                 </button>
                             </td>

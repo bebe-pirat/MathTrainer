@@ -1,3 +1,5 @@
+import { BASE_URL } from '../constants';
+
 export const fetchSchools = async () => {
     try {
         const response = await fetch(`${BASE_URL}/admin/schools`, {

@@ -10,6 +10,7 @@ import SchoolsPage from "./pages/admin/SchoolsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
+import StudentsPage from "./pages/teacher/StudentListPage";
 import HomePage from "./pages/HomePage";
 
 function AppRoutes() {
@@ -84,6 +85,15 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
                         <TeacherDashboard/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/teacher/students"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                        <StudentsPage/>
                     </ProtectedRoute>
                 }
             />

@@ -138,7 +138,7 @@ func (r *UserRepositoryStruct) BlockUser(ctx context.Context, id int, blocked bo
 func (r *UserRepositoryStruct) UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error {
 	query := `
 		UPDATE users
-		SET lastlogin = $1
+		SET last_login = $1
 		WHERE id = $2
 	`
 
@@ -172,7 +172,7 @@ func (r *UserRepositoryStruct) DeleteUser(ctx context.Context, id int) error {
 
 func (r *UserRepositoryStruct) GetUserById(ctx context.Context, id int) (*model.User, error) {
 	query := `
-		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
+		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, last_login
 		FROM users
 		WHERE id = $1
 	`
@@ -271,9 +271,9 @@ func (r *UserRepositoryStruct) UserExists(ctx context.Context, login string, pas
 
 func (r *UserRepositoryStruct) GetStudentsByClass(ctx context.Context, classId int) ([]model.User, error) {
 	query := `
-		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, lastlogin
+		SELECT id, email, login, Password_hash, Role_Id, Blocked, FullName, Class_Id, Created_at, last_login
 		FROM users 
-		WHERE class_id = $1 AND roleId = 1
+		WHERE class_id = $1 AND role_id = 1
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, classId)
