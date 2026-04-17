@@ -26,6 +26,7 @@ type UserRepository interface {
 	GetStudentsByClass(ctx context.Context, classID int) ([]model.User, error)
 	GetTeachersBySchool(ctx context.Context, schoolID int) ([]model.User, error)
 	GetClassByUserId(ctx context.Context, userId int) (int, error)
+	GetGradeByStudentId(ctx context.Context, studentId int) (int, error)
 
 	GetTotalStudentBySchoolId(ctx context.Context, schoolId int) (int, error)
 
@@ -41,6 +42,23 @@ func NewUserRepositoryStruct(db *sql.DB) *UserRepositoryStruct {
 	return &UserRepositoryStruct{
 		db: db,
 	}
+}
+
+func (r *UserRepositoryStruct) GetGradeByStudentId(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT grade 
+		FROM users
+		JOIN classes ON users.class_id = classes.id
+		WHERE users.id = $1;
+	`
+
+	var grade int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&grade)
+	if err != nil {
+		return 0, err
+	}
+
+	return grade, nil
 }
 
 func (r *UserRepositoryStruct) GetClassByUserId(ctx context.Context, userId int) (int, error) {

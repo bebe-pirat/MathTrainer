@@ -25,25 +25,33 @@ func NewStudentHandler(studentService service.StudentService, levelService servi
 	}
 }
 
-// student
-// levels +
-// GET level/id - продумать логику придумывания уровня и уравнения из него((((( +-
-// POST level/start?id= +
-// POST level/finish?id= +
+// TODO: добавь в middleware для аутенфикации
+// TODO: и еще что-то, что я не могу вспомниьт .................. аааааааааааааааааааааааааа
 
-// GET student/achievements +
-// GET student/stats + 
-// GET student/profile + 
+func (h *StudentHandler) GetLevelsMap(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 
-// POST equation/check -------------------
+	sessionData, err := getSessionFromCookie(r)
+	if err != nil {
+		http.Error(w, "invalid session", http.StatusUnauthorized)
+		slog.Error("failed to get session from cookie", "error", err)
+		return
+	}
 
+	levelsMap, err := h.studentService.GetStudentLevelsMap(ctx, sessionData.UserID)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		slog.Error("levels read failed", "error", err)
+		return
+	}
 
-// admin
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
-
-
-// добавь в middleware для аутенфикации
-// и еще что-то, что я не могу вспомниьт .................. аааааааааааааааааааааааааа
+	if err := json.NewEncoder(w).Encode(levelsMap); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
 
 func (h *StudentHandler) GetLevelsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
