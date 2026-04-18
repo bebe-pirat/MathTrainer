@@ -12,6 +12,7 @@ import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
 import StudentsPage from "./pages/teacher/StudentListPage";
 import HomePage from "./pages/HomePage";
+import LevelMapPage from "./pages/student/LevelsMapPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -75,7 +76,7 @@ function AppRoutes() {
                 path="/student/dashboard"
                 element={
                     <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-                        <div>Student</div>
+                        <LevelMapPage/>
                     </ProtectedRoute>
                 }
             />

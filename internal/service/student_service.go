@@ -57,7 +57,7 @@ func (s *StudentServiceStruct) GetStudentLevelsMap(ctx context.Context, studentI
 		return nil, err
 	}
 
-	sections, err := s.sectionRepo.GetSectionByClass(ctx, class)
+	sections, err := s.sectionRepo.GetSectionsByClass(ctx, class, position.SectionId)
 	if err != nil {
 		return nil, err
 	}

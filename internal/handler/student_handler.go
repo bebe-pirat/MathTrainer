@@ -30,6 +30,7 @@ func NewStudentHandler(studentService service.StudentService, levelService servi
 
 func (h *StudentHandler) GetLevelsMap(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	slog.Info("hola")
 
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {

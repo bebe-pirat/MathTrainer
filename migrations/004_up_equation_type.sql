@@ -220,3 +220,34 @@ insert into section_equation_types (section_id, eqaution_type_id) values
 (16, 21), -- Смешанные выражения (+ - *) до 100000
 (16, 22), -- Смешанные выражения (+ - /) до 100000
 (16, 23); -- Все действия (+, -, *, /) до 100000
+
+
+alter table attempts
+add student_id int not null;
+
+alter table attempts 
+add constraint fk_student_id_attempts foreign key (student_id) references users(id);
+
+CREATE VIEW student_stats AS
+SELECT 
+    student_id,
+    equation_type_id,
+    COUNT(*) as total_attempts,
+    SUM(CASE WHEN correct_answer = student_answer THEN 1 ELSE 0 END) as correct_attempts,
+    AVG(CASE WHEN correct_answer = student_answer THEN 1.0 ELSE 0 END) as success_rate,
+    MAX(answered_at) as last_attempt
+FROM attempts
+GROUP BY student_id, equation_type_id;
+
+CREATE VIEW student_section_stats AS
+SELECT 
+    student_id,
+	section_id,
+    equation_type_id,
+    COUNT(*) as total_attempts,
+    SUM(CASE WHEN correct_answer = student_answer THEN 1 ELSE 0 END) as correct_attempts,
+    AVG(CASE WHEN correct_answer = student_answer THEN 1.0 ELSE 0 END) as success_rate,
+    MAX(answered_at) as last_attempt
+FROM attempts
+JOIN section_equation_types ON section_equation_types.eqaution_type_id = attempts.equation_type_id
+GROUP BY student_id, section_id, equation_type_id;

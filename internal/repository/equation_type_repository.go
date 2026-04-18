@@ -7,6 +7,11 @@ import (
 )
 
 type EquationTypeRepository interface {
+	GetEquationTypesBySection(ctx context.Context, sectionId int) ([]model.EquationTypeWithOperands, error)
+	GetOperandsByEquationType(ctx context.Context, equationTypeId int) ([]model.Operand, error)
+
+	// old and maybe unnessesary
+	// TODO: при ненадобности удалиьт нахер
 	GetAllEquationTypes(ctx context.Context) ([]model.EquationType, error)
 	GetEquationTypeById(ctx context.Context) (*model.EquationType, error)
 	GetEquationTypesByLevelId(ctx context.Context, levelId int) ([]model.EquationType, error)
@@ -20,6 +25,84 @@ func NewEquationTypeRepositoryStruct(db *sql.DB) *EquationTypeRepositoryStruct {
 	return &EquationTypeRepositoryStruct{
 		db: db,
 	}
+}
+
+func (r *EquationTypeRepositoryStruct) GetEquationTypesBySection(ctx context.Context, sectionId int) ([]model.EquationTypeWithOperands, error) {
+	query := `
+		SELECT equation_types.id, operations, num_operands, no_remainder, max_result
+		FROM equation_types
+		JOIN section_equation_types ON equation_types.id = section_equation_types.equation_type_id
+		WHERE section_id = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, sectionId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var equationTypes []model.EquationTypeWithOperands
+	for rows.Next() {
+		var equationType model.EquationTypeWithOperands
+
+		err := rows.Scan(
+			&equationType.Id,
+			&equationType.Operations,
+			&equationType.NumOperands,
+			&equationType.NoRemainder,
+			&equationType.MaxResult,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		equationTypes = append(equationTypes, equationType)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return equationTypes, nil
+}
+
+func (r *EquationTypeRepositoryStruct) GetOperandsByEquationType(ctx context.Context, equationTypeId int) ([]model.Operand, error) {
+	query := `
+		SELECT id, operand_order, min_value, max_value
+		FROM operands 
+		WHERE equation_type_id = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, equationTypeId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var operands []model.Operand
+	for rows.Next() {
+		var operand model.Operand
+
+		err := rows.Scan(
+			&operand.Id,
+			&operand.OperandOrder,
+			&operand.MinValue,
+			&operand.MaxValue,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		operands = append(operands, operand)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return operands, nil
 }
 
 func (r *EquationTypeRepositoryStruct) GetAllEquationTypes(ctx context.Context) ([]model.EquationType, error) {

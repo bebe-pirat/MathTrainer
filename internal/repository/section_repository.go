@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"MathTrainer/internal"
 	"MathTrainer/internal/model"
 	"context"
 	"database/sql"
 )
 
 type SectionRepository interface {
-	GetSectionByClass(ctx context.Context, class int) ([]model.Section, error)
+	GetSectionsByClass(ctx context.Context, class int, currentSection int) ([]model.Section, error)
 	GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error)
 }
 
@@ -21,16 +22,18 @@ func NewSectionRepositoryStruct(db *sql.DB) *SectionRepositoryStruct {
 	}
 }
 
-func (r *SectionRepositoryStruct) GetSectionByClass(ctx context.Context, class int) ([]model.Section, error) {
+func (r *SectionRepositoryStruct) GetSectionsByClass(ctx context.Context, class int, currentSection int) ([]model.Section, error) {
 	query := `
-		SELECT id, name, section_order, COUNT(*) as types_count
+		SELECT id, name, section_order, COUNT(*) as types_count, CASE WHEN sections.id <= $1 THEN TRUE ELSE FALSE END AS unlocked
 		FROM sections 
 		JOIN section_equation_types ON section_id = sections.id
-		WHERE class = $1;
+		WHERE class = $2
+		GROUP BY sections.id, name, section_order
+		ORDER BY section_order;
 	`
 
 	var sections []model.Section
-	rows, err := r.db.QueryContext(ctx, query, class)
+	rows, err := r.db.QueryContext(ctx, query, currentSection, class)
 	if err != nil {
 		return nil, err
 	}
@@ -38,21 +41,25 @@ func (r *SectionRepositoryStruct) GetSectionByClass(ctx context.Context, class i
 
 	for rows.Next() {
 		var section model.Section
+		var typesCount int
 
 		err = rows.Scan(
 			&section.Id,
 			&section.Name,
 			&section.Order,
-			&section.LevelsCount,
+			&typesCount,
+			&section.IsUnlocked,
 		)
 		if err != nil {
 			return nil, err
 		}
 
+		section.LevelsCount = internal.LevelsInSectionCoef * typesCount
+
 		sections = append(sections, section)
 	}
 
-	if rows.Err() != nil {
+	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -61,10 +68,11 @@ func (r *SectionRepositoryStruct) GetSectionByClass(ctx context.Context, class i
 
 func (r *SectionRepositoryStruct) GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error) {
 	query := `
-		SELECT section_id, level_order
+		SELECT section_id, MAX(level_order)
 		FROM student_progress_level
 		WHERE user_id = $1
-		ORDER BY section_id DESC, level_order DESC
+		GROUP BY section_id
+		ORDER BY section_id DESC
 		LIMIT 1;
 	`
 

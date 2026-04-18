@@ -5,6 +5,7 @@ type Section struct {
 	Name        string `json:"name"`
 	Order       int    `json:"order"`
 	LevelsCount int    `json:"levels_count"`
+	IsUnlocked  bool   `json:"is_unlocked"`
 }
 
 type StudentPosition struct {

@@ -64,6 +64,8 @@ func main() {
 	attemptRepo := repository.NewEquationAttemptsRepositoryStruct(db)
 	progressRepo := repository.NewStudentProgressRepositoryStruct(db)
 	achievRepo := repository.NewAchievementOfStudentRepositoryStruct(db)
+	levelRepo := repository.NewLevelRepositoryStruct(db)
+	sectionRepo := repository.NewSectionRepositoryStruct(db)
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
@@ -71,18 +73,21 @@ func main() {
 	classService := service.NewClassServiceStruct(classRepo)
 	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo)
+	levelService := service.NewLevelServiceStruct(levelRepo, progressRepo)
+	studentService := service.NewStudentServiceStruct(userRepo, achievRepo, sectionRepo)
 
 	// Handler
 	authHandler := handler.NewAuthHandler(authService)
 	adminHandler := handler.NewAdminHandler(adminService, classService)
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
+	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService)
 
 	mainRouter := mux.NewRouter()
 
 	createAuthRouter(mainRouter, authHandler)
 	createAdminRouter(mainRouter, adminHandler)
 	createTeacherRouter(mainRouter, teacherHandler)
-
+	createStudentRouter(mainRouter, studentHandler)
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
@@ -154,9 +159,13 @@ func createTeacherRouter(router *mux.Router, teacherHandler *handler.TeacherHand
 	return teacherRouter
 }
 
-// func createStudentRouter() *mux.Router {
+func createStudentRouter(router *mux.Router, studentHandler *handler.StudentHandler) *mux.Router {
+	studentRouter := router.PathPrefix("/student").Subrouter()
 
-// }
+	studentRouter.HandleFunc("/level-map", studentHandler.GetLevelsMap).Methods("GET")
+
+	return studentRouter
+}
 
 // func createEquationRouter() *mux.Router {
 

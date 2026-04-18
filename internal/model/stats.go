@@ -15,6 +15,11 @@ type StudentStats struct {
 	WeakTopics []string `json:"weak_types"`
 }
 
+type ShortEquationTypeStats struct {
+	TypeId   int
+	Accuracy float32
+}
+
 type ExtendedEquationTypeStats struct {
 	Type     string `json:"type"`
 	Attempts int    `json:"attempts"`
