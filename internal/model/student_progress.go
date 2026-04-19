@@ -5,7 +5,8 @@ import "time"
 type StudentProgress struct {
 	Id          int
 	StudentId   int
-	LevelId     int
+	SectionId   int
+	LevelOrder  int
 	CountStarts int
 	FinishedAt  time.Time
 }

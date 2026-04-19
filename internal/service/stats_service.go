@@ -4,7 +4,6 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
-	"log/slog"
 )
 
 type StatsService interface {
@@ -49,128 +48,160 @@ func (s *StatsServiceStruct) GetSchoolStats(ctx context.Context, schoolId int) (
 		return nil, err
 	}
 
-	totalCount, err := s.attemptRepo.GetTotalAttemptsBySchoolId(ctx, schoolId)
-	if err != nil {
-		return nil, err
-	}
+	// totalCount, err := s.attemptRepo.GetTotalAttemptsBySchoolId(ctx, schoolId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	wrongCount, err := s.attemptRepo.GetWrongAnswersBySchoolId(ctx, schoolId)
-	if err != nil {
-		return nil, err
-	}
+	// wrongCount, err := s.attemptRepo.GetWrongAnswersBySchoolId(ctx, schoolId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	accuracy := float32(totalCount) / float32(wrongCount) * 100.0
+	// accuracy := float32(totalCount) / float32(wrongCount) * 100.0
 
-	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyBySchoolId(ctx, schoolId)
-	if err != nil {
-		return nil, err
-	}
+	// equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyBySchoolId(ctx, schoolId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	classStats, err := s.attemptRepo.GetClassesAccuracyBySchoolId(ctx, schoolId)
-	if err != nil {
-		return nil, err
-	}
+	// classStats, err := s.attemptRepo.GetClassesAccuracyBySchoolId(ctx, schoolId)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// return &model.SchoolStats{
+	// 	StudentsCount:       countStudents,
+	// 	ClassesCount:        len(classes),
+	// 	TotalEquationSolved: totalCount,
+	// 	WrongAnswers:        wrongCount,
+	// 	Accuracy:            accuracy,
+	// 	EquationTypes:       equationTypes,
+	// 	Classes:             classStats,
+	// }, nil
 
 	return &model.SchoolStats{
 		StudentsCount:       countStudents,
 		ClassesCount:        len(classes),
-		TotalEquationSolved: totalCount,
-		WrongAnswers:        wrongCount,
-		Accuracy:            accuracy,
-		EquationTypes:       equationTypes,
-		Classes:             classStats,
+		TotalEquationSolved: 0,
+		WrongAnswers:        0,
+		Accuracy:            0,
+		EquationTypes:       nil,
+		Classes:             nil,
 	}, nil
 }
 
 func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*model.ClassStats, error) {
-	students, err := s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
-	if err != nil {
-		return nil, err
-	}
+	// students, err := s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	slog.Info("student short stats", students)
+	// slog.Info("student short stats", students)
 
-	studentCount := len(students)
+	// studentCount := len(students)
 
-	totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
-	if err != nil {
-		return nil, err
-	}
+	// totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	wrongCount, err := s.attemptRepo.GetWrongAnswersByClassId(ctx, classId)
-	if err != nil {
-		return nil, err
-	}
+	// wrongCount, err := s.attemptRepo.GetWrongAnswersByClassId(ctx, classId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	correctCount := totalCount - wrongCount
-	accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	// correctCount := totalCount - wrongCount
+	// accuracy := float32(correctCount) / float32(totalCount) * 100.0
 
-	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyByClassId(ctx, classId)
-	if err != nil {
-		return nil, err
-	}
+	// equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyByClassId(ctx, classId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
+	// return &model.ClassStats{
+	// 	StudentsCount:  studentCount,
+	// 	TotalAttempts:  totalCount,
+	// 	WrongAnswers:   wrongCount,
+	// 	CorrectAnswers: correctCount,
+	// 	Accuracy:       accuracy,
+	// 	EquationTypes:  equationTypes,
+	// 	Students:       students,
+	// }, nil
 	return &model.ClassStats{
-		StudentsCount:  studentCount,
-		TotalAttempts:  totalCount,
-		WrongAnswers:   wrongCount,
-		CorrectAnswers: correctCount,
-		Accuracy:       accuracy,
-		EquationTypes:  equationTypes,
-		Students:       students,
+		StudentsCount:  0,
+		TotalAttempts:  0,
+		WrongAnswers:   0,
+		CorrectAnswers: 0,
+		Accuracy:       0,
+		EquationTypes:  nil,
+		Students:       nil,
 	}, nil
+
 }
 
 func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int) (*model.StudentStats, error) {
-	totalCount, err := s.attemptRepo.GetAllStats(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// totalCount, err := s.attemptRepo.GetAllStats(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	wrongCount, err := s.attemptRepo.GetErrorStats(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// wrongCount, err := s.attemptRepo.GetErrorStats(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	correctCount := totalCount - wrongCount
-	accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	// correctCount := totalCount - wrongCount
+	// accuracy := float32(correctCount) / float32(totalCount) * 100.0
 
-	complitedLevels, err := s.progressRepo.GetComplitedLevels(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// complitedLevels, err := s.progressRepo.GetComplitedLevels(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
-	if err != nil {
-		return nil, err
-	}
+	// equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	weakTopics := make([]string, 0)
-	for _, value := range equationTypes {
-		if value.Accuracy < 50.0 {
-			weakTopics = append(weakTopics, value.Type)
-		}
-	}
+	// weakTopics := make([]string, 0)
+	// for _, value := range equationTypes {
+	// 	if value.Accuracy < 50.0 {
+	// 		weakTopics = append(weakTopics, value.Type)
+	// 	}
+	// }
+
+	// return &model.StudentStats{
+	// 	TotalAttempts:   totalCount,
+	// 	CorrectAnswers:  correctCount,
+	// 	WrongAnswers:    wrongCount,
+	// 	Accuracy:        accuracy,
+	// 	LevelsCompleted: complitedLevels,
+	// 	StarsTotal:      starsCount,
+	// 	EquationTypes:   equationTypes,
+	// 	Achievements:    achievements,
+	// 	WeakTopics:      weakTopics,
+	// }, nil
 
 	return &model.StudentStats{
-		TotalAttempts:   totalCount,
-		CorrectAnswers:  correctCount,
-		WrongAnswers:    wrongCount,
-		Accuracy:        accuracy,
-		LevelsCompleted: complitedLevels,
-		StarsTotal:      starsCount,
-		EquationTypes:   equationTypes,
-		Achievements:    achievements,
-		WeakTopics:      weakTopics,
+		TotalAttempts:   0,
+		CorrectAnswers:  0,
+		WrongAnswers:    0,
+		Accuracy:        0,
+		LevelsCompleted: 0,
+		StarsTotal:      0,
+		EquationTypes:   nil,
+		Achievements:    nil,
+		WeakTopics:      nil,
 	}, nil
 }

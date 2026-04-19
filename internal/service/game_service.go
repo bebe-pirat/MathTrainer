@@ -6,8 +6,10 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
+	"errors"
 	"math/rand/v2"
 	"sort"
+	"time"
 )
 
 type weightedType struct {
@@ -17,22 +19,27 @@ type weightedType struct {
 }
 
 type GameService interface {
-	GenerateAdaptiveEquationSet(ctx context.Context, sectionId int, studentId int) ([]model.Equation, error)
-	CheckEquations(ctx context.Context, answers []model.Answer) ([]model.EquationFeedback, error)
+	GenerateAdaptiveEquationSet(ctx context.Context, sectionId int, studentId int) ([]model.Equation, error)                                     // получение сета уравнений
+	CheckEquations(ctx context.Context, answers []model.Answer) ([]model.EquationFeedback, error)                                                // проверка
+	FinishLevel(ctx context.Context, feedback []model.EquationFeedback, sectionId int, levelOrder int, studentId int) (*model.StarsAndXP, error) // завершение xp and stars
 
 	CreateAttempts(ctx context.Context, answers []model.Answer, studentId int) error
-	CreateStudentLevelProgress(ctx context.Context, feedback []model.EquationFeedback, studentId int, sectionId int) error
+	CreateStudentLevelProgress(ctx context.Context, countStars int, studentId int, sectionId int, levelOrder int) error
 }
 
 type GameServiceStruct struct {
 	equationRepo repository.EquationTypeRepository
 	attemptRepo  repository.EquationAttemptsRepository
+	progressRepo repository.StudentProgressRepository
+	userRepo     repository.UserRepository
 }
 
-func NewGameServiceStruct(equationRepo repository.EquationTypeRepository, attemptRepo repository.EquationAttemptsRepository) *GameServiceStruct {
+func NewGameServiceStruct(equationRepo repository.EquationTypeRepository, attemptRepo repository.EquationAttemptsRepository, progressRepo repository.StudentProgressRepository, userRepo repository.UserRepository) *GameServiceStruct {
 	return &GameServiceStruct{
 		equationRepo: equationRepo,
 		attemptRepo:  attemptRepo,
+		progressRepo: progressRepo,
+		userRepo:     userRepo,
 	}
 }
 
@@ -153,4 +160,101 @@ func (s *GameServiceStruct) generateEquationsBasedOnWeightedTypes(weightedTypes 
 	}
 
 	return equations, nil
+}
+
+func (s *GameServiceStruct) CreateAttempts(ctx context.Context, answers []model.Answer, studentId int) error {
+	for i := 0; i < len(answers); i++ {
+		attempt := model.Attempt{
+			StudentId:      studentId,
+			EquationTypeId: answers[i].EquationTypeId,
+			GivenAnswer:    answers[i].UserAnswer,
+			CorrectAnswer:  answers[i].CorrectAnswer,
+			EquationText:   answers[i].Text,
+			AnsweredAt:     time.Now(),
+		}
+
+		err := s.attemptRepo.CreateAttempt(ctx, attempt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *GameServiceStruct) CreateStudentLevelProgress(ctx context.Context, countStars int, studentId int, sectionId int, levelOrder int) error {
+	if countStars < internal.MinStars || countStars > internal.MaxStars {
+		return errors.New("bad request")
+	}
+
+	return s.progressRepo.CreateStudentProgressLevel(ctx, model.StudentProgress{
+		StudentId:   studentId,
+		SectionId:   sectionId,
+		LevelOrder:  levelOrder,
+		CountStarts: countStars,
+		FinishedAt:  time.Now(),
+	})
+}
+
+func (s *GameServiceStruct) CheckEquations(ctx context.Context, answers []model.Answer) ([]model.EquationFeedback, error) {
+	feedback := make([]model.EquationFeedback, len(answers))
+
+	for i := 0; i < len(answers); i++ {
+		feedback[i] = model.EquationFeedback{
+			EquationId:    answers[i].EquationId,
+			IsCorrect:     answers[i].CorrectAnswer == answers[i].UserAnswer,
+			CorrectAnswer: answers[i].CorrectAnswer,
+			Feedback:      answers[i].Text,
+		}
+	}
+
+	return feedback, nil
+}
+
+func (s *GameServiceStruct) FinishLevel(ctx context.Context, feedback []model.EquationFeedback, sectionId int, levelOrder int, studentId int) (*model.StarsAndXP, error) {
+	correctCount, xp := 0, 0
+
+	for _, item := range feedback {
+		if item.IsCorrect {
+			xp += internal.RightAnswerRegularExpressionXP
+			correctCount++
+		}
+
+		if !item.IsCorrect {
+			xp += internal.WrongAnswer
+		}
+	}
+
+	if xp%internal.CountEquationInSet == internal.RightAnswerRegularExpressionXP {
+		xp += internal.LevelWithoutMistakes
+	}
+
+	err := s.userRepo.AddXP(ctx, studentId, xp)
+	if err != nil {
+		return nil, err
+	}
+
+	stars := 0
+
+	accuracy := float64(correctCount) / float64(internal.CountEquationInSet)
+
+	if accuracy >= internal.OneStarsPercent && accuracy < internal.TwoStarsPercent {
+		stars = 1
+	} else if accuracy >= internal.TwoStarsPercent && accuracy < internal.ThreeStarsPercent {
+		stars = 2
+	} else if accuracy >= internal.ThreeStarsPercent && accuracy < 1 {
+		stars = 3
+	}
+
+	err = s.CreateStudentLevelProgress(ctx, stars, studentId, sectionId, levelOrder)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.StarsAndXP{
+		SectionId:  sectionId,
+		LevelOrder: levelOrder,
+		Stars:      stars,
+		CommonXP:   xp,
+	}, nil
 }

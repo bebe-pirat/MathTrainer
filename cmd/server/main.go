@@ -66,6 +66,7 @@ func main() {
 	achievRepo := repository.NewAchievementOfStudentRepositoryStruct(db)
 	levelRepo := repository.NewLevelRepositoryStruct(db)
 	sectionRepo := repository.NewSectionRepositoryStruct(db)
+	equationRepo := repository.NewEquationTypeRepositoryStruct(db)
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
@@ -75,12 +76,13 @@ func main() {
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo)
 	levelService := service.NewLevelServiceStruct(levelRepo, progressRepo)
 	studentService := service.NewStudentServiceStruct(userRepo, achievRepo, sectionRepo)
+	gameService := service.NewGameServiceStruct(equationRepo, attemptRepo, progressRepo, userRepo)
 
 	// Handler
 	authHandler := handler.NewAuthHandler(authService)
 	adminHandler := handler.NewAdminHandler(adminService, classService)
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
-	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService)
+	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService, gameService)
 
 	mainRouter := mux.NewRouter()
 
@@ -163,6 +165,10 @@ func createStudentRouter(router *mux.Router, studentHandler *handler.StudentHand
 	studentRouter := router.PathPrefix("/student").Subrouter()
 
 	studentRouter.HandleFunc("/level-map", studentHandler.GetLevelsMap).Methods("GET")
+	// вынеси отдельно -_-
+	studentRouter.HandleFunc("/game/check", studentHandler.CheckEquations).Methods("POST")
+	studentRouter.HandleFunc("/game/equations-set", studentHandler.GetEquationsSet).Methods("POST")
+	studentRouter.HandleFunc("/game/finish-level", studentHandler.FinishLevel).Methods("POST")
 
 	return studentRouter
 }

@@ -13,8 +13,8 @@ type EquationTypeRepository interface {
 	// old and maybe unnessesary
 	// TODO: при ненадобности удалиьт нахер
 	GetAllEquationTypes(ctx context.Context) ([]model.EquationType, error)
-	GetEquationTypeById(ctx context.Context) (*model.EquationType, error)
-	GetEquationTypesByLevelId(ctx context.Context, levelId int) ([]model.EquationType, error)
+	GetEquationTypeById(ctx context.Context, id int) (*model.EquationType, error)
+	// GetEquationTypesByLevelId(ctx context.Context, levelId int) ([]model.EquationType, error)
 }
 
 type EquationTypeRepositoryStruct struct {

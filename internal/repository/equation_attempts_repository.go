@@ -10,7 +10,7 @@ type EquationAttemptsRepository interface {
 	GetStudentSectionStats(ctx context.Context, studentId int, sectionId int) (map[int]float32, error)
 
 	// // старое))))))))
-	// CreateAttempt(ctx context.Context, e model.EquationAttempts) (int, error)
+	CreateAttempt(ctx context.Context, e model.Attempt) error
 	// GetStudentAttempts(ctx context.Context, studentId int) ([]model.EquationAttempts, error)
 
 	// // school stats
@@ -76,21 +76,21 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentSectionStats(ctx context.Co
 	return shortStats, nil
 }
 
-// func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e model.EquationAttempts) (int, error) {
-// 	query := `
-// 		INSERT INTO equation_attempts(student_id, equation_id, given_answer, correct, attempted_at)
-// 		VALUES($1, $2, $3, $4, $5, $6)
-// 		RETURNING id
-// 	`
+func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e model.Attempt) error {
+	query := `
+		INSERT INTO attempts(student_id, equation_type_id, equation_text, correct_answer, student_answer, answered_at)
+		VALUES($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`
 
-// 	var id int
-// 	err := r.db.QueryRowContext(ctx, query, e.StudentId, e.EquationId, e.GivenAnswer, e.Correct, e.AttemptedAt).Scan(&id)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	var id int
+	err := r.db.QueryRowContext(ctx, query, e.StudentId, e.EquationTypeId, e.EquationText, e.CorrectAnswer, e.GivenAnswer, e.AnsweredAt).Scan(&id)
+	if err != nil {
+		return err
+	}
 
-// 	return id, nil
-// }
+	return nil
+}
 
 // func (r *EquationAttemptsRepositoryStruct) GetStudentAttempts(ctx context.Context, studentId int) ([]model.EquationAttempts, error) {
 // 	query := `

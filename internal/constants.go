@@ -7,6 +7,8 @@ const (
 	OneStarsPercent   = 0.5
 	TwoStarsPercent   = 0.7
 	ThreeStarsPercent = 0.9
+	MinStars          = 0
+	MaxStars          = 3
 )
 
 // addition xp for answers

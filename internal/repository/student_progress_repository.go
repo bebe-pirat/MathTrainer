@@ -7,11 +7,14 @@ import (
 )
 
 type StudentProgressRepository interface {
-	StartLevel(ctx context.Context, studentId, levelId int) error
+	CreateStudentProgressLevel(ctx context.Context, progress model.StudentProgress) error
+
+	// старое
+	StartLevel(ctx context.Context, studentId, LevelOrder int) error
 	FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error)
 
 	GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error)
-	GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error)
+	GetLevelProgress(ctx context.Context, studentId, LevelOrder int) ([]model.StudentProgress, error)
 
 	// student stats
 	GetComplitedLevels(ctx context.Context, studentId int) (int, error)
@@ -28,13 +31,31 @@ func NewStudentProgressRepositoryStruct(db *sql.DB) *StudentProgressRepositorySt
 	}
 }
 
-func (r *StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, levelId int) error {
+func (r *StudentProgressRepositoryStruct) CreateStudentProgressLevel(ctx context.Context, progress model.StudentProgress) error {
+	query := `
+		INSERT INTO student_progress_level(user_id, section_id, level_order, count_stars, finished_at) 
+		VALUES ($1, $2, $3, $4, $5);
+	`
+
+	res, err := r.db.ExecContext(ctx, query, progress.StudentId, progress.SectionId, progress.LevelOrder, progress.CountStarts, progress.FinishedAt)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *StudentProgressRepositoryStruct) StartLevel(ctx context.Context, studentId, LevelOrder int) error {
 	query := `
 		INSERT INTO student_progress(student_id, level_id) 
 		VALUES ($1, $2)
 	`
 
-	res, err := r.db.ExecContext(ctx, query, studentId, levelId)
+	res, err := r.db.ExecContext(ctx, query, studentId, LevelOrder)
 	if err != nil {
 		return err
 	}
@@ -53,7 +74,7 @@ func (r *StudentProgressRepositoryStruct) FinishLevel(ctx context.Context, e mod
 	`
 
 	var progress model.StudentProgress
-	err := r.db.QueryRowContext(ctx, query, e.CountStarts, e.FinishedAt, e.Id).Scan(&progress.Id, &progress.StudentId, &progress.LevelId, &progress.CountStarts, &progress.FinishedAt)
+	err := r.db.QueryRowContext(ctx, query, e.CountStarts, e.FinishedAt, e.Id).Scan(&progress.Id, &progress.StudentId, &progress.LevelOrder, &progress.CountStarts, &progress.FinishedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +100,7 @@ func (r *StudentProgressRepositoryStruct) GetStudentProgress(ctx context.Context
 		err := rows.Scan(
 			&progress.Id,
 			&progress.StudentId,
-			&progress.LevelId,
+			&progress.LevelOrder,
 			&progress.CountStarts,
 			&progress.FinishedAt,
 		)
@@ -97,13 +118,13 @@ func (r *StudentProgressRepositoryStruct) GetStudentProgress(ctx context.Context
 	return progresses, nil
 }
 
-func (r *StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, studentId, levelId int) ([]model.StudentProgress, error) {
+func (r *StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, studentId, LevelOrder int) ([]model.StudentProgress, error) {
 	query := `
 		SELECT id, student_id, level_id, count_stars, finished_at
 		WHERE student_id = $1 AND level_id = $2
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, studentId, levelId)
+	rows, err := r.db.QueryContext(ctx, query, studentId, LevelOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +136,7 @@ func (r *StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, 
 		err := rows.Scan(
 			&progress.Id,
 			&progress.StudentId,
-			&progress.LevelId,
+			&progress.LevelOrder,
 			&progress.CountStarts,
 			&progress.FinishedAt,
 		)

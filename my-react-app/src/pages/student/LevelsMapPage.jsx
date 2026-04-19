@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import LogoutButton from "./../../components/LogoutButton";
-import { BASE_URL } from "./../../constants";
+import { BASE_URL } from "../../constants";
 
 function LevelMapPage() {
     const [map, setMap] = useState(null);
@@ -16,11 +16,9 @@ function LevelMapPage() {
 
     if (!map) return <div>Loading...</div>;
 
-    console.log(map)
-
     return (
         <div style={styles.page}>
-            {/* верхняя панель */}
+            {/* header */}
             <div style={styles.header}>
                 <button>Статистика</button>
                 <button>Профиль</button>
@@ -30,46 +28,12 @@ function LevelMapPage() {
             {/* карта */}
             <div style={styles.map}>
                 {map.sections.map((section, sIndex) => (
-                    <div key={section.id} style={styles.section}>
-                        <h3>{section.name}</h3>
-
-                        <div style={styles.levelRow}>
-                            {[...Array(section.levels_count)].map((_, i) => {
-                                const levelNumber = i + 1;
-
-                                const isCompleted =
-                                    map.student_position.section_id > section.id ||
-                                    (map.student_position.section_id === section.id &&
-                                        map.student_position.level_order > levelNumber);
-
-                                const isCurrent =
-                                    map.student_position.section_id === section.id &&
-                                    map.student_position.level_order === levelNumber;
-
-                                const isBlocked =
-                                    section.is_blocked ||
-                                    (map.student_position.section_id < section.id);
-
-                                return (
-                                    <div
-                                        key={i}
-                                        style={{
-                                            ...styles.level,
-                                            backgroundColor: isBlocked
-                                                ? "#ccc"
-                                                : isCompleted
-                                                ? "#4da6ff"
-                                                : isCurrent
-                                                ? "#66b3ff"
-                                                : "#e6f2ff",
-                                        }}
-                                    >
-                                        {levelNumber}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <SectionSnake
+                        key={section.id}
+                        section={section}
+                        index={sIndex}
+                        position={map.student_position}
+                    />
                 ))}
             </div>
         </div>
@@ -77,6 +41,67 @@ function LevelMapPage() {
 }
 
 export default LevelMapPage;
+
+function SectionSnake({ section, index, position }) {
+    const direction = index % 2 === 0 ? "right" : "left";
+
+    return (
+        <div style={styles.section}>
+            <h3>{section.name}</h3>
+
+            <div
+                style={{
+                    ...styles.levelRow,
+                    flexDirection: direction === "right" ? "row" : "row-reverse",
+                }}
+            >
+                {[...Array(section.levels_count)].map((_, i) => {
+                    const level = i + 1;
+
+                    const isCompleted =
+                        position.section_id > section.id ||
+                        (position.section_id === section.id &&
+                            position.level_order > level);
+
+                    const isCurrent =
+                        position.section_id === section.id &&
+                        position.level_order === level;
+
+                    const isBlocked =
+                        section.is_blocked ||
+                        position.section_id < section.id;
+
+                    return (
+                        <div key={i} style={styles.nodeWrapper}>
+                            <div
+                                style={{
+                                    ...styles.level,
+                                    backgroundColor: isBlocked
+                                        ? "#ccc"
+                                        : isCompleted
+                                        ? "#4da6ff"
+                                        : isCurrent
+                                        ? "#66b3ff"
+                                        : "#e6f2ff",
+                                }}
+                            >
+                                {level}
+                            </div>
+
+                            {/* горизонтальная линия */}
+                            {i < section.levels_count - 1 && (
+                                <div style={styles.horizontalLine} />
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* вертикальная связь к следующей секции */}
+            <div style={styles.verticalConnector} />
+        </div>
+    );
+}
 
 const styles = {
     page: {
@@ -94,19 +119,25 @@ const styles = {
     map: {
         display: "flex",
         flexDirection: "column",
-        gap: "40px",
         alignItems: "center",
+        gap: "60px",
     },
 
     section: {
-        textAlign: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
     },
 
     levelRow: {
         display: "flex",
-        gap: "15px",
-        flexWrap: "wrap",
-        justifyContent: "center",
+        alignItems: "center",
+        position: "relative",
+    },
+
+    nodeWrapper: {
+        display: "flex",
+        alignItems: "center",
     },
 
     level: {
@@ -116,7 +147,21 @@ const styles = {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        cursor: "pointer",
         fontWeight: "bold",
+        cursor: "pointer",
+        zIndex: 2,
+    },
+
+    horizontalLine: {
+        width: "40px",
+        height: "4px",
+        backgroundColor: "#4da6ff",
+    },
+
+    verticalConnector: {
+        width: "4px",
+        height: "40px",
+        backgroundColor: "#4da6ff",
+        marginTop: "10px",
     },
 };

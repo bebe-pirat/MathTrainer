@@ -32,6 +32,8 @@ type UserRepository interface {
 
 	// student page
 	GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error)
+
+	AddXP(ctx context.Context, studentId int, xp int) error
 }
 
 type UserRepositoryStruct struct {
@@ -425,4 +427,23 @@ func (r *UserRepositoryStruct) GetStudentProfileById(ctx context.Context, id int
 	}
 
 	return &profile, nil
+}
+
+func (r *UserRepositoryStruct) AddXP(ctx context.Context, studentId int, xp int) error {
+	query := `
+		UPDATE users
+		SET xp = xp + $1
+		WHERE id = $2;
+	`
+
+	res, err := r.db.ExecContext(ctx, query, xp, studentId)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
