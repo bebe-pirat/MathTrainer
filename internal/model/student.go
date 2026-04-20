@@ -1,15 +1,16 @@
 package model
 
 type StudentProfile struct {
-	ID       int
-	FullName string
+	ID       int    `json:"id"`
+	FullName string `json:"fullname"`
 
-	SchoolName string
-	ClassName  string
+	SchoolName string `json:"school_name"`
+	ClassName  string `json:"class_name"`
+
+	XP int `json:"xp"`
 }
 
 type Recommendation struct {
-	EquationType string
-	Accuracy     float64
+	EquationType string  `json:"equation_type"`
+	Accuracy     float64 `json:"accuracy"`
 }
-

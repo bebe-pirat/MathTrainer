@@ -25,10 +25,10 @@ type EquationAttemptsRepository interface {
 	// GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error)
 	// GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error)
 
-	// // student stats
-	// GetErrorStats(ctx context.Context, studentId int) (int, error)
-	// GetAllStats(ctx context.Context, studentId int) (int, error)
-	// GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error)
+	// student stats
+	GetCountErrorAttempts(ctx context.Context, studentId int) (int, error)
+	GetTotalCountAttempts(ctx context.Context, studentId int) (int, error)
+	GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error)
 }
 
 type EquationAttemptsRepositoryStruct struct {
@@ -128,33 +128,39 @@ func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e 
 // 	return attempts, nil
 // }
 
-// func (r *EquationAttemptsRepositoryStruct) GetErrorStats(ctx context.Context, studentId int) (int, error) {
-// 	query := `
-// 		select count(*) from equation_attempts where correct = false and student_id = $1
-// 	`
+func (r *EquationAttemptsRepositoryStruct) GetCountErrorAttempts(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT count(id) 
+		FROM attempts 
+		WHERE correct_answer <> student_answer and student_id = $1
+		GROUP BY student_id;
+	`
 
-// 	var count int
-// 	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	var count int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
 
-// 	return count, nil
-// }
+	return count, nil
+}
 
-// func (r *EquationAttemptsRepositoryStruct) GetAllStats(ctx context.Context, studentId int) (int, error) {
-// 	query := `
-// 		select count(*) from equation_attempts where student_id = $1
-// 	`
+func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT count(id) 
+		FROM attempts 
+		WHERE student_id = $1
+		GROUP BY student_id;
+	`
 
-// 	var count int
-// 	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+	var count int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
 
-// 	return count, nil
-// }
+	return count, nil
+}
 
 // func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsBySchoolId(ctx context.Context, schoolId int) (int, error) {
 // 	query := `
@@ -384,45 +390,44 @@ func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e 
 // 	return count, nil
 // }
 
-// func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error) {
-// 	query := `
-// 		SELECT equation_types.name, COUNT(*) as total, SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0) as right,
-// 		SUM(CASE WHEN equation_attempts.correct THEN 0 ELSE 1) as wrong,
-// 		(right * 100.0 / NULLIF(total, 0)) as accuracy
-// 		from equation_attempts
-// 		join equations on equations.id = equation_attempts.equation_id
-// 		join equation_types on equations.equaition_type_id = equation_types.id
-// 		where student_id = $1
-// 		group by equation_types.name
-// 	`
+func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error) {
+	query := `
+		SELECT equation_types.name, COUNT(*) as total, SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0) as right,
+		SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 0 ELSE 1) as wrong,
+		(right * 100.0 / NULLIF(total, 0)) as accuracy
+		FROM attempts
+		JOIN equation_types on attempts.equaition_type_id = equation_types.id
+		WHERE student_id = $1
+		GROUP BY equation_types.name
+	`
 
-// 	rows, err := r.db.QueryContext(ctx, query, studentId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+	rows, err := r.db.QueryContext(ctx, query, studentId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-// 	stats := make([]model.ExtendedEquationTypeStats, 0)
-// 	for rows.Next() {
-// 		var stat model.ExtendedEquationTypeStats
+	stats := make([]model.ExtendedEquationTypeStats, 0)
+	for rows.Next() {
+		var stat model.ExtendedEquationTypeStats
 
-// 		err := rows.Scan(
-// 			&stat.Type,
-// 			&stat.Attempts,
-// 			&stat.Correct,
-// 			&stat.Wrong,
-// 			&stat.Accuracy,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
+		err := rows.Scan(
+			&stat.Type,
+			&stat.Attempts,
+			&stat.Correct,
+			&stat.Wrong,
+			&stat.Accuracy,
+		)
+		if err != nil {
+			return nil, err
+		}
 
-// 		stats = append(stats, stat)
-// 	}
+		stats = append(stats, stat)
+	}
 
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-// 	return stats, nil
-// }
+	return stats, nil
+}

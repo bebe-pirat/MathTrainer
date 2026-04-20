@@ -82,7 +82,8 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 	adminHandler := handler.NewAdminHandler(adminService, classService)
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
-	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService, gameService)
+	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService)
+	equationHandler := handler.NewEquationHandler(gameService)
 
 	mainRouter := mux.NewRouter()
 
@@ -90,6 +91,8 @@ func main() {
 	createAdminRouter(mainRouter, adminHandler)
 	createTeacherRouter(mainRouter, teacherHandler)
 	createStudentRouter(mainRouter, studentHandler)
+	createEquationRouter(mainRouter, equationHandler)
+
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
@@ -165,17 +168,19 @@ func createStudentRouter(router *mux.Router, studentHandler *handler.StudentHand
 	studentRouter := router.PathPrefix("/student").Subrouter()
 
 	studentRouter.HandleFunc("/level-map", studentHandler.GetLevelsMap).Methods("GET")
-	// вынеси отдельно -_-
-	studentRouter.HandleFunc("/game/check", studentHandler.CheckEquations).Methods("POST")
-	studentRouter.HandleFunc("/game/equations-set", studentHandler.GetEquationsSet).Methods("POST")
-	studentRouter.HandleFunc("/game/finish-level", studentHandler.FinishLevel).Methods("POST")
 
 	return studentRouter
 }
 
-// func createEquationRouter() *mux.Router {
+func createEquationRouter(router *mux.Router, equationHandler *handler.EquationHandler) *mux.Router {
+	equationRouter := router.PathPrefix("/game").Subrouter()
 
-// }
+	equationRouter.HandleFunc("/game/check", equationHandler.CheckEquations).Methods("POST")
+	equationRouter.HandleFunc("/game/equations-set", equationHandler.GetEquationsSet).Methods("POST")
+	equationRouter.HandleFunc("/game/finish-level", equationHandler.FinishLevel).Methods("POST")
+
+	return equationRouter
+}
 
 func createAuthRouter(router *mux.Router, authHandler *handler.AuthHandler) *mux.Router {
 	authRouter := router.PathPrefix("/auth").Subrouter()

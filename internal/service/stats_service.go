@@ -141,67 +141,61 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 }
 
 func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int) (*model.StudentStats, error) {
-	// totalCount, err := s.attemptRepo.GetAllStats(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	totalCount, err := s.attemptRepo.GetTotalCountAttempts(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// wrongCount, err := s.attemptRepo.GetErrorStats(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	wrongCount, err := s.attemptRepo.GetCountErrorAttempts(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// correctCount := totalCount - wrongCount
-	// accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	correctCount := totalCount - wrongCount
+	accuracy := float32(correctCount) / float32(totalCount) * 100.0
 
-	// complitedLevels, err := s.progressRepo.GetComplitedLevels(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	complitedLevels, err := s.progressRepo.GetCountComplitedLevels(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	xp, err := s.studentRepo.GetStudentXP(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// weakTopics := make([]string, 0)
-	// for _, value := range equationTypes {
-	// 	if value.Accuracy < 50.0 {
-	// 		weakTopics = append(weakTopics, value.Type)
-	// 	}
-	// }
+	equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
+	if err != nil {
+		return nil, err
+	}
 
-	// return &model.StudentStats{
-	// 	TotalAttempts:   totalCount,
-	// 	CorrectAnswers:  correctCount,
-	// 	WrongAnswers:    wrongCount,
-	// 	Accuracy:        accuracy,
-	// 	LevelsCompleted: complitedLevels,
-	// 	StarsTotal:      starsCount,
-	// 	EquationTypes:   equationTypes,
-	// 	Achievements:    achievements,
-	// 	WeakTopics:      weakTopics,
-	// }, nil
+	weakTopics := make([]string, 0)
+	for _, value := range equationTypes {
+		if value.Accuracy < 50.0 {
+			weakTopics = append(weakTopics, value.Type)
+		}
+	}
 
 	return &model.StudentStats{
-		TotalAttempts:   0,
-		CorrectAnswers:  0,
-		WrongAnswers:    0,
-		Accuracy:        0,
-		LevelsCompleted: 0,
-		StarsTotal:      0,
-		EquationTypes:   nil,
-		Achievements:    nil,
-		WeakTopics:      nil,
+		TotalAttempts:   totalCount,
+		CorrectAnswers:  correctCount,
+		WrongAnswers:    wrongCount,
+		Accuracy:        accuracy,
+		LevelsCompleted: complitedLevels,
+		StarsTotal:      starsCount,
+		XP:              xp,
+		EquationTypes:   equationTypes,
+		Achievements:    achievements,
+		WeakTopics:      weakTopics,
 	}, nil
 }

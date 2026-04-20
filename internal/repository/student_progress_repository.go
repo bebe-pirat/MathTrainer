@@ -17,7 +17,7 @@ type StudentProgressRepository interface {
 	GetLevelProgress(ctx context.Context, studentId, LevelOrder int) ([]model.StudentProgress, error)
 
 	// student stats
-	GetComplitedLevels(ctx context.Context, studentId int) (int, error)
+	GetCountComplitedLevels(ctx context.Context, studentId int) (int, error)
 	GetTotalStars(ctx context.Context, studentId int) (int, error)
 }
 
@@ -154,11 +154,12 @@ func (r *StudentProgressRepositoryStruct) GetLevelProgress(ctx context.Context, 
 	return progresses, nil
 }
 
-func (r *StudentProgressRepositoryStruct) GetComplitedLevels(ctx context.Context, studentId int) (int, error) {
+func (r *StudentProgressRepositoryStruct) GetCountComplitedLevels(ctx context.Context, studentId int) (int, error) {
 	query := `
-		SELECT COUNT(*) 
-		FROM student_progress
-		WHERE Student_progress.Student_Id = $1 and finished_at is not null
+		SELECT COUNT(id) 
+		FROM student_progress_level
+		WHERE student_progress_level.student_Id = $1 and finished_at is not null
+		GROUP BY student_id;
 	`
 
 	var count int
@@ -172,9 +173,9 @@ func (r *StudentProgressRepositoryStruct) GetComplitedLevels(ctx context.Context
 
 func (r *StudentProgressRepositoryStruct) GetTotalStars(ctx context.Context, studentId int) (int, error) {
 	query := `
-		SELECT SUM(COALESCE(Count_stars, 0))
-		FROM student_progress
-		WHERE Student_progress.Student_Id = $1
+		SELECT SUM(COALESCE(count_stars, 0))
+		FROM student_progress_level
+		WHERE student_progress_level.student_id = $1
 	`
 
 	var count int

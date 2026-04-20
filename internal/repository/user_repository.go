@@ -34,6 +34,7 @@ type UserRepository interface {
 	GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error)
 
 	AddXP(ctx context.Context, studentId int, xp int) error
+	GetStudentXP(ctx context.Context, studentId int) (int, error)
 }
 
 type UserRepositoryStruct struct {
@@ -408,7 +409,7 @@ func (r *UserRepositoryStruct) GetTotalStudentBySchoolId(ctx context.Context, sc
 
 func (r *UserRepositoryStruct) GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error) {
 	query := `
-		SELECT id, fullname, classes.name, schools.name 
+		SELECT id, fullname, classes.name, schools.name, xp 
 		FROM users 
 		JOIN classes ON users.class_id = classes.id
 		JOIN schools ON classes.school_id = schools.id
@@ -421,6 +422,7 @@ func (r *UserRepositoryStruct) GetStudentProfileById(ctx context.Context, id int
 		&profile.FullName,
 		&profile.ClassName,
 		&profile.SchoolName,
+		&profile.XP,
 	)
 	if err != nil {
 		return nil, err
@@ -446,4 +448,20 @@ func (r *UserRepositoryStruct) AddXP(ctx context.Context, studentId int, xp int)
 	}
 
 	return nil
+}
+
+func (r *StudentProgressRepositoryStruct) GetStudentXP(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT xp
+		FROM users
+		WHERE users.id = $1;
+	`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

@@ -8,6 +8,7 @@ type StudentStats struct {
 
 	LevelsCompleted int `json:"levels_completed"`
 	StarsTotal      int `json:"stars_total"`
+	XP              int `json:"xp"`
 
 	EquationTypes []ExtendedEquationTypeStats `json:"equation_type_stats"`
 	Achievements  []AchievementOfStudent      `json:"achievements"`
