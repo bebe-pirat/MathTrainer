@@ -168,6 +168,8 @@ func createStudentRouter(router *mux.Router, studentHandler *handler.StudentHand
 	studentRouter := router.PathPrefix("/student").Subrouter()
 
 	studentRouter.HandleFunc("/level-map", studentHandler.GetLevelsMap).Methods("GET")
+	studentRouter.HandleFunc("/profile", studentHandler.GetProfile).Methods("GET")
+	studentRouter.HandleFunc("/stats", studentHandler.GetStats).Methods("GET")
 
 	return studentRouter
 }
@@ -175,9 +177,9 @@ func createStudentRouter(router *mux.Router, studentHandler *handler.StudentHand
 func createEquationRouter(router *mux.Router, equationHandler *handler.EquationHandler) *mux.Router {
 	equationRouter := router.PathPrefix("/game").Subrouter()
 
-	equationRouter.HandleFunc("/game/check", equationHandler.CheckEquations).Methods("POST")
-	equationRouter.HandleFunc("/game/equations-set", equationHandler.GetEquationsSet).Methods("POST")
-	equationRouter.HandleFunc("/game/finish-level", equationHandler.FinishLevel).Methods("POST")
+	equationRouter.HandleFunc("/check", equationHandler.CheckEquations).Methods("POST")
+	equationRouter.HandleFunc("/equations-set", equationHandler.GetEquationsSet).Methods("POST")
+	equationRouter.HandleFunc("/finish-level", equationHandler.FinishLevel).Methods("POST")
 
 	return equationRouter
 }

@@ -409,11 +409,11 @@ func (r *UserRepositoryStruct) GetTotalStudentBySchoolId(ctx context.Context, sc
 
 func (r *UserRepositoryStruct) GetStudentProfileById(ctx context.Context, id int) (*model.StudentProfile, error) {
 	query := `
-		SELECT id, fullname, classes.name, schools.name, xp 
+		SELECT users.id, fullname, classes.name, schools.name, xp 
 		FROM users 
 		JOIN classes ON users.class_id = classes.id
 		JOIN schools ON classes.school_id = schools.id
-		WHERE id = $1
+		WHERE users.id = $1
 	`
 
 	var profile model.StudentProfile
@@ -450,7 +450,7 @@ func (r *UserRepositoryStruct) AddXP(ctx context.Context, studentId int, xp int)
 	return nil
 }
 
-func (r *StudentProgressRepositoryStruct) GetStudentXP(ctx context.Context, studentId int) (int, error) {
+func (r *UserRepositoryStruct) GetStudentXP(ctx context.Context, studentId int) (int, error) {
 	query := `
 		SELECT xp
 		FROM users

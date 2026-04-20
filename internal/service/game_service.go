@@ -7,6 +7,7 @@ import (
 	"MathTrainer/internal/repository"
 	"context"
 	"errors"
+	"log/slog"
 	"math/rand/v2"
 	"sort"
 	"time"
@@ -46,17 +47,20 @@ func NewGameServiceStruct(equationRepo repository.EquationTypeRepository, attemp
 func (s *GameServiceStruct) GenerateAdaptiveEquationSet(ctx context.Context, sectionId int, studentId int) ([]model.Equation, error) {
 	typeStats, err := s.attemptRepo.GetStudentSectionStats(ctx, studentId, sectionId)
 	if err != nil {
+		slog.Info("mama")
 		return nil, err
 	}
 
 	types, err := s.equationRepo.GetEquationTypesBySection(ctx, sectionId)
 	if err != nil {
+		slog.Info("papa")
 		return nil, err
 	}
 
 	for i := 0; i < len(types); i++ {
 		operands, err := s.equationRepo.GetOperandsByEquationType(ctx, types[i].Id)
 		if err != nil {
+			slog.Info("lena")
 			return nil, err
 		}
 
@@ -67,6 +71,7 @@ func (s *GameServiceStruct) GenerateAdaptiveEquationSet(ctx context.Context, sec
 
 	equations, err := s.generateEquationsBasedOnWeightedTypes(weightedTypes, totalWeight)
 	if err != nil {
+		slog.Info("pusya")
 		return nil, err
 	}
 
@@ -149,7 +154,9 @@ func (s *GameServiceStruct) generateEquationsBasedOnWeightedTypes(weightedTypes 
 
 		eq.Id = i
 
-		equations = append(equations, eq)
+		equations[i] = eq
+
+		slog.Info("equation done", "equation", eq.Text, eq.Id)
 
 		for i := range weightedTypes {
 			if weightedTypes[i].Type.Id == selectedType.Id {
@@ -157,7 +164,10 @@ func (s *GameServiceStruct) generateEquationsBasedOnWeightedTypes(weightedTypes 
 				break
 			}
 		}
+
 	}
+
+	slog.Info("done set", "eqautions", equations)
 
 	return equations, nil
 }

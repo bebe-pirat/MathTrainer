@@ -45,7 +45,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentSectionStats(ctx context.Co
 	query := `
 		SELECT equation_type_id, success_rate
 		FROM student_section_stats
-		WHERE student_id = $1, section_id = $2;
+		WHERE student_id = $1 AND section_id = $2;
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, studentId, sectionId)
@@ -78,7 +78,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentSectionStats(ctx context.Co
 
 func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e model.Attempt) error {
 	query := `
-		INSERT INTO attempts(student_id, equation_type_id, equation_text, correct_answer, student_answer, answered_at)
+		INSERT INTO attempts(user_id, equation_type_id, equation_text, correct_answer, student_answer, answered_at)
 		VALUES($1, $2, $3, $4, $5, $6)
 		RETURNING id
 	`
@@ -150,7 +150,7 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Con
 		SELECT count(id) 
 		FROM attempts 
 		WHERE student_id = $1
-		GROUP BY student_id;
+		GROUP BY id;
 	`
 
 	var count int
@@ -392,13 +392,24 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Con
 
 func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error) {
 	query := `
-		SELECT equation_types.name, COUNT(*) as total, SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0) as right,
-		SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 0 ELSE 1) as wrong,
-		(right * 100.0 / NULLIF(total, 0)) as accuracy
-		FROM attempts
-		JOIN equation_types on attempts.equaition_type_id = equation_types.id
-		WHERE student_id = $1
-		GROUP BY equation_types.name
+		WITH stats AS (
+			SELECT 
+				equation_types.name,
+				COUNT(*) AS total,
+				SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) AS right_ans,
+				SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 0 ELSE 1 END) AS wrong
+			FROM attempts
+			JOIN equation_types ON attempts.equation_type_id = equation_types.id
+			WHERE student_id = $1
+			GROUP BY equation_types.name
+		)
+		SELECT 
+			name,
+			total,
+			right_ans,
+			wrong,
+			(right_ans * 100.0 / NULLIF(total, 0)) AS accuracy
+		FROM stats;
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, studentId)

@@ -32,7 +32,7 @@ func (h *EquationHandler) GetEquationsSet(w http.ResponseWriter, r *http.Request
 
 	if err := json.NewDecoder(r.Body).Decode(&sectionId); err != nil {
 		http.Error(w, "failed to get session", http.StatusBadRequest)
-		slog.Error("bad request", "error", err)
+		slog.Error("failed to get section_id", "error", err)
 		return
 	}
 

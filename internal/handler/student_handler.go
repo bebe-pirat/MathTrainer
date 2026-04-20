@@ -26,7 +26,6 @@ func NewStudentHandler(studentService service.StudentService, levelService servi
 
 func (h *StudentHandler) GetLevelsMap(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	slog.Info("hola")
 
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
@@ -52,7 +51,7 @@ func (h *StudentHandler) GetLevelsMap(w http.ResponseWriter, r *http.Request) {
 
 func (h *StudentHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
+	slog.Info("hola, seniorita")
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
 		http.Error(w, "invalid session", http.StatusUnauthorized)
@@ -63,7 +62,7 @@ func (h *StudentHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	profile, err := h.studentService.GetProfile(ctx, sessionData.UserID)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
-		slog.Error("failed get profile", "user_id", sessionData.UserID)
+		slog.Error("failed get profile", "user_id", sessionData.UserID, "error", err)
 		return
 	}
 

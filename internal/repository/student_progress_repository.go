@@ -158,8 +158,8 @@ func (r *StudentProgressRepositoryStruct) GetCountComplitedLevels(ctx context.Co
 	query := `
 		SELECT COUNT(id) 
 		FROM student_progress_level
-		WHERE student_progress_level.student_Id = $1 and finished_at is not null
-		GROUP BY student_id;
+		WHERE student_progress_level.user_id = $1 and finished_at is not null
+		GROUP BY user_id;
 	`
 
 	var count int
@@ -175,7 +175,7 @@ func (r *StudentProgressRepositoryStruct) GetTotalStars(ctx context.Context, stu
 	query := `
 		SELECT SUM(COALESCE(count_stars, 0))
 		FROM student_progress_level
-		WHERE student_progress_level.student_id = $1
+		WHERE student_progress_level.user_id = $1
 	`
 
 	var count int

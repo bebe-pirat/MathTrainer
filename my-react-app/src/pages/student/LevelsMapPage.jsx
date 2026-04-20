@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import LogoutButton from "./../../components/LogoutButton";
 import { BASE_URL } from "../../constants";
+import { useNavigate } from "react-router-dom";
 
 function LevelMapPage() {
+    const navigate = useNavigate();
     const [map, setMap] = useState(null);
 
     useEffect(() => {
@@ -20,8 +22,13 @@ function LevelMapPage() {
         <div style={styles.page}>
             {/* header */}
             <div style={styles.header}>
-                <button>Статистика</button>
-                <button>Профиль</button>
+                <button onClick={() => navigate("/student/stats")}>
+                    Статистика
+                </button>
+
+                <button onClick={() => navigate("/student/profile")}>
+                    Профиль
+                </button>
                 <LogoutButton />
             </div>
 
@@ -43,6 +50,7 @@ function LevelMapPage() {
 export default LevelMapPage;
 
 function SectionSnake({ section, index, position }) {
+    const navigate = useNavigate(); 
     const direction = index % 2 === 0 ? "right" : "left";
 
     return (
@@ -73,7 +81,15 @@ function SectionSnake({ section, index, position }) {
 
                     return (
                         <div key={i} style={styles.nodeWrapper}>
-                            <div
+                            <div onClick={() =>
+                                    navigate("/game", {
+                                        state: {
+                                            sectionId: section.id,
+                                            levelOrder: level,
+                                        },
+                                    })
+                                }
+
                                 style={{
                                     ...styles.level,
                                     backgroundColor: isBlocked

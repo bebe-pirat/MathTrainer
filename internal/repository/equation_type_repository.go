@@ -4,6 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type EquationTypeRepository interface {
@@ -31,7 +32,7 @@ func (r *EquationTypeRepositoryStruct) GetEquationTypesBySection(ctx context.Con
 	query := `
 		SELECT equation_types.id, operations, num_operands, no_remainder, max_result
 		FROM equation_types
-		JOIN section_equation_types ON equation_types.id = section_equation_types.equation_type_id
+		JOIN section_equation_types ON equation_types.id = section_equation_types.eqaution_type_id
 		WHERE section_id = $1;
 	`
 
@@ -61,7 +62,7 @@ func (r *EquationTypeRepositoryStruct) GetEquationTypesBySection(ctx context.Con
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error here: %w", err)
 	}
 
 	return equationTypes, nil
@@ -76,7 +77,7 @@ func (r *EquationTypeRepositoryStruct) GetOperandsByEquationType(ctx context.Con
 
 	rows, err := r.db.QueryContext(ctx, query, equationTypeId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("poerand get error: %w", err)
 	}
 	defer rows.Close()
 
@@ -92,14 +93,14 @@ func (r *EquationTypeRepositoryStruct) GetOperandsByEquationType(ctx context.Con
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("poerand get error: %w", err)
 		}
 
 		operands = append(operands, operand)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("poerand get error: %w", err)
 	}
 
 	return operands, nil

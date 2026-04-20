@@ -22,11 +22,11 @@ type ShortEquationTypeStats struct {
 }
 
 type ExtendedEquationTypeStats struct {
-	Type     string `json:"type"`
-	Attempts int    `json:"attempts"`
-	Correct  int    `json:"correct"`
-	Wrong    int    `json:"wrong"`
-	Accuracy int    `json:"accuracy_percent"`
+	Type     string  `json:"type"`
+	Attempts int     `json:"attempts"`
+	Correct  int     `json:"correct"`
+	Wrong    int     `json:"wrong"`
+	Accuracy float64 `json:"accuracy_percent"`
 }
 
 type ClassStats struct {

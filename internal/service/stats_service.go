@@ -4,6 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
+	"log/slog"
 )
 
 type StatsService interface {
@@ -143,11 +144,13 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int) (*model.StudentStats, error) {
 	totalCount, err := s.attemptRepo.GetTotalCountAttempts(ctx, studentId)
 	if err != nil {
+		slog.Info("total count")
 		return nil, err
 	}
 
 	wrongCount, err := s.attemptRepo.GetCountErrorAttempts(ctx, studentId)
 	if err != nil {
+		slog.Info("wrong count")
 		return nil, err
 	}
 
@@ -156,26 +159,31 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 
 	complitedLevels, err := s.progressRepo.GetCountComplitedLevels(ctx, studentId)
 	if err != nil {
+		slog.Info("levels count")
 		return nil, err
 	}
 
 	starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
 	if err != nil {
+		slog.Info("stars count")
 		return nil, err
 	}
 
 	xp, err := s.studentRepo.GetStudentXP(ctx, studentId)
 	if err != nil {
+		slog.Info("xp count")
 		return nil, err
 	}
 
 	achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
 	if err != nil {
+		slog.Info("achieves")
 		return nil, err
 	}
 
 	equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
 	if err != nil {
+		slog.Info("types")
 		return nil, err
 	}
 

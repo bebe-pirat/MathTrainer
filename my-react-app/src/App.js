@@ -13,6 +13,9 @@ import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
 import StudentsPage from "./pages/teacher/StudentListPage";
 import HomePage from "./pages/HomePage";
 import LevelMapPage from "./pages/student/LevelsMapPage";
+import ProfilePage from "./pages/student/ProfilePage";
+import GamePage from "./pages/game/GamePage";
+import StatsPage from "./pages/student/StatsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -95,6 +98,33 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
                         <StudentsPage/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/game"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                        <GamePage/>
+                    </ProtectedRoute>
+                }
+            />
+
+              <Route
+                path="/student/stats"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                        <StatsPage/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/student/profile"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+                        <ProfilePage />
                     </ProtectedRoute>
                 }
             />
