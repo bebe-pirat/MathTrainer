@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LogoutButton from "./../../components/LogoutButton";
+import LogoutButton from "../../components/LogoutButton/LogoutButton";
 import { BASE_URL } from "../../constants";
 
 function ProfilePage() {

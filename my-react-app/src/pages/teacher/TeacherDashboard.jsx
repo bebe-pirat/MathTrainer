@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import LogoutButton from "../../components/LogoutButton";
+import LogoutButton from "../../components/LogoutButton/LogoutButton";
 
 function TeacherDashboard() {
     const navigate = useNavigate();
