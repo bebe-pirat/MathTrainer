@@ -11,7 +11,7 @@ function LogoutButton() {
         navigate("/login");
     };
 
-    return <button onClick={handleLogout} className={styles.LogoutButton} >выйти</button>;
+    return <button onClick={handleLogout} className={styles.logoutButton} >Выйти</button>;
 }
 
 export default LogoutButton

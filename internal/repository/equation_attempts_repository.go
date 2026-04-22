@@ -150,7 +150,7 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Con
 		SELECT count(id) 
 		FROM attempts 
 		WHERE student_id = $1
-		GROUP BY id;
+		GROUP BY student_id;
 	`
 
 	var count int

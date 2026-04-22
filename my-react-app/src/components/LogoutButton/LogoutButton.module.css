@@ -1,12 +1,25 @@
-.headerButton {
-    background: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 40px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1e6f9f;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+.logoutButton {
+  background: #1e6f9f;
+  border: 3px solid #ffffff;
+  padding: 12px 30px;
+  border-radius: 60px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #0a3b55;
+  transition: all 0.1s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.logoutButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 0 #0a3b55;
+  background: #2c8bc0;
+}
+
+.logoutButton:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #0a3b55;
 }

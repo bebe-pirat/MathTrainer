@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth, AuthProvider } from "./AuthContext";
-import Login from "./pages/Login";
+import Login from "./pages/Login/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { ROLES } from "./constants";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import TeacherDashboard from "./pages/teacher/TeacherDashboard/TeacherDashboard";
 import TeachersPage from "./pages/admin/TeachersPage";
 import SchoolsPage from "./pages/admin/SchoolsPage";
 import UsersPage from "./pages/admin/UsersPage";
@@ -12,10 +12,10 @@ import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
 import StudentsPage from "./pages/teacher/StudentListPage";
 import HomePage from "./pages/HomePage";
-import LevelMapPage from "./pages/student/LevelsMapPage";
-import ProfilePage from "./pages/student/ProfilePage";
+import LevelMapPage from "./pages/student/LevelsMapPage/LevelsMapPage";
+import ProfilePage from "./pages/student/ProfilePage/ProfilePage";
 import GamePage from "./pages/game/GamePage";
-import StatsPage from "./pages/student/StatsPage";
+import StatsPage from "./pages/student/StatsPage/StatsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();

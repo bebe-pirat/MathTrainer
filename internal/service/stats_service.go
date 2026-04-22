@@ -156,6 +156,8 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 
 	correctCount := totalCount - wrongCount
 	accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	// TODO: удали, нужно было для отладки
+	// slog.Info("accuracy info", "accuracy", accuracy, "correct_count", correctCount, "total_count", totalCount, "wrong_count", wrongCount)
 
 	complitedLevels, err := s.progressRepo.GetCountComplitedLevels(ctx, studentId)
 	if err != nil {
@@ -186,6 +188,9 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 		slog.Info("types")
 		return nil, err
 	}
+
+	// TODO: удали, нужно для отладки
+	// slog.Info("equation_types", "equation type name", equationTypes[0].Type, "accuracy", equationTypes[0].Accuracy)
 
 	weakTopics := make([]string, 0)
 	for _, value := range equationTypes {
