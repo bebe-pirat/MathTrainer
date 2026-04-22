@@ -19,11 +19,11 @@ type EquationAttemptsRepository interface {
 	// GetClassesAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.ClassShortStats, error)
 	// GetEquationTypeAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.EquationTypeStats, error)
 
-	// // class stats
-	// GetStudentsShortStatsByClassId(ctx context.Context, classId int) ([]model.StudentShortStats, error)
-	// GetWrongAnswersByClassId(ctx context.Context, classId int) (int, error)
-	// GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error)
-	// GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error)
+	// class stats
+	GetStudentsShortStatsByClassId(ctx context.Context, classId int) ([]model.StudentShortStats, error)
+	GetWrongAnswersByClassId(ctx context.Context, classId int) (int, error)
+	GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error)
+	GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error)
 
 	// student stats
 	GetCountErrorAttempts(ctx context.Context, studentId int) (int, error)
@@ -274,121 +274,131 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Con
 
 // 	return stats, nil
 // }
-// func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
-// 	query := `
-// 		SELECT
-// 			users.id,
-// 			users.fullname,
-// 			COALESCE(ROUND(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 2), 0) as accuracy,
-// 			COUNT(DISTINCT equation_attempts.level_id) as levels_completed
-// 		FROM users
-// 		LEFT JOIN equation_attempts ON equation_attempts.student_id = users.id
-// 		WHERE users.class_id = $1
-// 		GROUP BY users.id, users.fullname
-// 	`
 
-// 	rows, err := r.db.QueryContext(ctx, query, classId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
+	query := `
+		WITH levels_complited AS (
+			SELECT user_id, COUNT(student_progress_level.id) as count_levels
+			FROM student_progress_level 
+			JOIN users ON users.id = student_progress_level.user_id
+			WHERE users.class_id = $1 AND finished_at is not null
+			GROUP BY user_id
+		)
+		SELECT
+			users.id,
+			users.fullname,
+			COALESCE(ROUND(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 2), 0) as accuracy,
+			COALESCE(count_levels, 0)
+		FROM users	
+		LEFT JOIN attempts ON attempts.student_id = users.id
+		LEFT JOIN levels_complited ON levels_complited.user_id = users.id
+		WHERE users.class_id = $1
+		GROUP BY users.id, users.fullname, count_levels;
+	`
 
-// 	stats := make([]model.StudentShortStats, 0)
-// 	for rows.Next() {
-// 		var stat model.StudentShortStats
+	rows, err := r.db.QueryContext(ctx, query, classId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-// 		err := rows.Scan(
-// 			&stat.StudentId,
-// 			&stat.Name,
-// 			&stat.Accuracy,
-// 			&stat.LevelsComplited,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	stats := make([]model.StudentShortStats, 0)
+	for rows.Next() {
+		var stat model.StudentShortStats
 
-// 		stats = append(stats, stat)
-// 	}
+		err := rows.Scan(
+			&stat.StudentId,
+			&stat.Name,
+			&stat.Accuracy,
+			&stat.LevelsComplited,
+		)
+		if err != nil {
+			return nil, err
+		}
 
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
+		stats = append(stats, stat)
+	}
 
-// 	return stats, nil
-// }
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-// func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error) {
-// 	query := `
-// 		SELECT equation_types.name, COALESCE(SUM(CASE WHEN equation_attempts.correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(equation_attempts.id), 0), 0)
-// 		from equation_attempts
-// 		join equations on equations.id = equation_attempts.equation_id
-// 		join equation_types on equations.equaition_type_id = equation_types.id
-// 		join users on users.id = equation_attempts.student_id
-// 		where users.class_id = $1
-// 		group by equation_types.name
-// 	`
+	return stats, nil
+}
 
-// 	rows, err := r.db.QueryContext(ctx, query, classId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
+func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error) {
+	query := `
+		SELECT equation_types.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
+		FROM attempts
+		JOIN equation_types ON attempts.equation_type_id = equation_types.id
+		JOIN users ON users.id = attempts.student_id
+		WHERE users.class_id = $1
+		GROUP BY equation_types.name;
+	`
 
-// 	stats := make([]model.EquationTypeStats, 0)
-// 	for rows.Next() {
-// 		var stat model.EquationTypeStats
+	rows, err := r.db.QueryContext(ctx, query, classId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-// 		err := rows.Scan(
-// 			&stat.Type,
-// 			&stat.Accuracy,
-// 		)
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	stats := make([]model.EquationTypeStats, 0)
+	for rows.Next() {
+		var stat model.EquationTypeStats
 
-// 		stats = append(stats, stat)
-// 	}
+		err := rows.Scan(
+			&stat.Type,
+			&stat.Accuracy,
+		)
+		if err != nil {
+			return nil, err
+		}
 
-// 	if err := rows.Err(); err != nil {
-// 		return nil, err
-// 	}
+		stats = append(stats, stat)
+	}
 
-// 	return stats, nil
-// }
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-// func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error) {
-// 	query := `
-// 		select count(*)
-// 		from equation_attempts
-// 		join users on users.id = equation_attempts.student_id
-// 		where users.class_id = $1
-// 	`
+	return stats, nil
+}
 
-// 	var count int
-// 	err := r.db.QueryRowContext(ctx, query, classId).Scan(&count)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error) {
+	query := `
+		SELECT count(*)
+		FROM attempts
+		JOIN users on users.id = attempts.student_id
+		WHERE users.class_id = $1
+		GROUP BY users.class_id;
+	`
 
-// 	return count, nil
-// }
+	var count int
+	err := r.db.QueryRowContext(ctx, query, classId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
 
-// func (r *EquationAttemptsRepositoryStruct) GetWrongAnswersByClassId(ctx context.Context, classId int) (int, error) {
-// 	query := `
-// 		select count(*)
-// 		from equation_attempts
-// 		join users on users.id = equation_attempts.student_id
-// 		where users.class_id = $1 and correct = false
-// 	`
+	return count, nil
+}
 
-// 	var count int
-// 	err := r.db.QueryRowContext(ctx, query, classId).Scan(&count)
-// 	if err != nil {
-// 		return 0, err
-// 	}
+func (r *EquationAttemptsRepositoryStruct) GetWrongAnswersByClassId(ctx context.Context, classId int) (int, error) {
+	query := `
+		SELECT count(*)
+		FROM attempts
+		JOIN users ON users.id = attempts.student_id
+		WHERE users.class_id = $1 AND attempts.correct_answer <> attempts.student_answer
+		GROUP BY users.class_id;
+	`
 
-// 	return count, nil
-// }
+	var count int
+	err := r.db.QueryRowContext(ctx, query, classId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
 
 func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx context.Context, studentId int) ([]model.ExtendedEquationTypeStats, error) {
 	query := `

@@ -26,7 +26,7 @@ type ExtendedEquationTypeStats struct {
 	Attempts int     `json:"attempts"`
 	Correct  int     `json:"correct"`
 	Wrong    int     `json:"wrong"`
-	Accuracy float64 `json:"accuracy_percent"`
+	Accuracy float32 `json:"accuracy_percent"`
 }
 
 type ClassStats struct {
@@ -41,15 +41,15 @@ type ClassStats struct {
 }
 
 type EquationTypeStats struct {
-	Type     string `json:"type"`
-	Accuracy int    `json:"accuracy_percent"`
+	Type     string  `json:"type"`
+	Accuracy float32 `json:"accuracy_percent"`
 }
 
 type StudentShortStats struct {
-	StudentId       int `json:"student_id"`
-	Name            int `json:"name"`
-	Accuracy        int `json:"accuracy"`
-	LevelsComplited int `json:"levels_complited"`
+	StudentId       int     `json:"student_id"`
+	Name            string  `json:"name"`
+	Accuracy        float32 `json:"accuracy"`
+	LevelsComplited int     `json:"levels_complited"`
 }
 
 type SchoolStats struct {

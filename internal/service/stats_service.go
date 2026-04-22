@@ -93,52 +93,43 @@ func (s *StatsServiceStruct) GetSchoolStats(ctx context.Context, schoolId int) (
 }
 
 func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*model.ClassStats, error) {
-	// students, err := s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	students, err := s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
+	if err != nil {
+		return nil, err
+	}
 
-	// slog.Info("student short stats", students)
+	// тут остановилась, первый запрос поправила
+	slog.Info("student short stats", students)
 
-	// studentCount := len(students)
+	studentCount := len(students)
 
-	// totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
+	if err != nil {
+		return nil, err
+	}
 
-	// wrongCount, err := s.attemptRepo.GetWrongAnswersByClassId(ctx, classId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	wrongCount, err := s.attemptRepo.GetWrongAnswersByClassId(ctx, classId)
+	if err != nil {
+		return nil, err
+	}
 
-	// correctCount := totalCount - wrongCount
-	// accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	correctCount := totalCount - wrongCount
+	accuracy := float32(correctCount) / float32(totalCount) * 100.0
 
-	// equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyByClassId(ctx, classId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyByClassId(ctx, classId)
+	if err != nil {
+		return nil, err
+	}
 
-	// return &model.ClassStats{
-	// 	StudentsCount:  studentCount,
-	// 	TotalAttempts:  totalCount,
-	// 	WrongAnswers:   wrongCount,
-	// 	CorrectAnswers: correctCount,
-	// 	Accuracy:       accuracy,
-	// 	EquationTypes:  equationTypes,
-	// 	Students:       students,
-	// }, nil
 	return &model.ClassStats{
-		StudentsCount:  0,
-		TotalAttempts:  0,
-		WrongAnswers:   0,
-		CorrectAnswers: 0,
-		Accuracy:       0,
-		EquationTypes:  nil,
-		Students:       nil,
-	}, nil
-
+		StudentsCount:  studentCount,
+		TotalAttempts:  totalCount,
+		WrongAnswers:   wrongCount,
+		CorrectAnswers: correctCount,
+		Accuracy:       accuracy,
+		EquationTypes:  equationTypes,
+		Students:       students,
+	}, nil	
 }
 
 func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int) (*model.StudentStats, error) {
