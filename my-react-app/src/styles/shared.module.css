@@ -182,3 +182,303 @@ select option {
   margin-top: 60px;
   text-align: center;
 }
+
+/* shared.module.css — дополнение */
+
+/* общие классы для админских страниц */
+.adminPage {
+  background: linear-gradient(145deg, #e8f4ff 0%, #ffffff 100%);
+  min-height: 100vh;
+  padding: 30px 20px;
+}
+
+.adminContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.adminTitle {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e6f9f, #4da6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+}
+
+/* карточка формы */
+.formCard {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 40px;
+  padding: 25px 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 12px 0 #cce5ff;
+  border: 2px solid white;
+}
+
+.formCard h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e6f9f;
+  margin-bottom: 20px;
+  border-left: 6px solid #4da6ff;
+  padding-left: 15px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-weight: 600;
+  color: #0a3b55;
+  font-size: 0.9rem;
+}
+
+.formInput,
+.formSelect {
+  padding: 12px 16px;
+  border: 3px solid #cce5ff;
+  border-radius: 40px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: #4da6ff;
+  box-shadow: 0 0 0 3px rgba(77, 166, 255, 0.2);
+}
+
+.formActions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.formButton {
+  background: #1e6f9f;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #0a3b55;
+  transition: all 0.1s ease;
+}
+
+.formButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #0a3b55;
+  background: #2c8bc0;
+}
+
+.formButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0a3b55;
+}
+
+.cancelButton {
+  background: #95a5a6;
+  box-shadow: 0 4px 0 #7f8c8d;
+}
+
+.cancelButton:hover {
+  background: #b0c4de;
+}
+
+/* таблица данных */
+.dataTableWrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.dataTable th {
+  background: #1e6f9f;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.dataTable td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #e0ecf5;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+.dataTable tr:hover {
+  background: #f0f8ff;
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 40px;
+}
+
+.loader {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #1e6f9f;
+  font-weight: bold;
+}
+
+.errorBox {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 40px;
+  max-width: 400px;
+  margin: 50px auto;
+  box-shadow: 0 12px 0 #cce5ff;
+}
+
+.errorBox p {
+  color: #e74c3c;
+  margin-bottom: 20px;
+}
+
+/* shared.module.css — добавить в конец */
+
+/* модальное окно */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 50px;
+  padding: 30px;
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+  border: 3px solid #4da6ff;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: #e74c3c;
+}
+
+.modalTitle {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #1e6f9f;
+  margin-bottom: 20px;
+}
+
+.modalBody {
+  margin-bottom: 25px;
+}
+
+.credentialRow {
+  background: #f0f8ff;
+  padding: 12px;
+  border-radius: 40px;
+  margin: 10px 0;
+  font-weight: bold;
+  color: #0a3b55;
+}
+
+.credentialLabel {
+  display: inline-block;
+  width: 60px;
+  font-weight: 600;
+}
+
+.credentialValue {
+  color: #1e6f9f;
+}
+
+.modalFooter {
+  margin-top: 20px;
+}
+
+/* строка заблокированного пользователя */
+.blockedRow {
+  background-color: #ffe6e6;
+}
+
+/* чекбокс */
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1e6f9f;
+  margin-right: 8px;
+}
+
+/* статус активен/заблокирован */
+.statusActive {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.statusBlocked {
+  color: #e74c3c;
+  font-weight: bold;
+}
