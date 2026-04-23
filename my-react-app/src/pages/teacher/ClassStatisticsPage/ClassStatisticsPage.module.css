@@ -1,0 +1,228 @@
+/* ClassStatistics.module.css */
+.page {
+  background: linear-gradient(145deg, #e8f4ff 0%, #ffffff 100%);
+  min-height: 100vh;
+  padding: 30px 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e6f9f, #4da6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+}
+
+/* карточка с общей статистикой */
+.statsCard {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 40px;
+  padding: 25px 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 12px 0 #cce5ff;
+  border: 2px solid white;
+}
+
+.statsCard h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e6f9f;
+  margin-bottom: 20px;
+  border-left: 6px solid #4da6ff;
+  padding-left: 15px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.statItem {
+  background: #f0f8ff;
+  border-radius: 30px;
+  padding: 15px;
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #0a3b55;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e6f9f;
+}
+
+/* блок с типами уравнений */
+.typeStats {
+  margin-bottom: 30px;
+}
+
+.typeRow {
+  margin-bottom: 15px;
+}
+
+.typeName {
+  font-weight: 600;
+  color: #0a3b55;
+  margin-bottom: 5px;
+}
+
+.progressBarWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 30px;
+  background-color: #e0ecf5;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 30px;
+  transition: width 0.3s ease;
+  background: linear-gradient(90deg, #4da6ff, #1e6f9f);
+}
+
+.progressValue {
+  min-width: 50px;
+  font-weight: bold;
+  color: #1e6f9f;
+}
+
+/* таблица */
+.tableWrapper {
+  overflow-x: auto;
+  margin-bottom: 30px;
+}
+
+.statsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.statsTable th {
+  background: #1e6f9f;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.statsTable td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #e0ecf5;
+}
+
+.statsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.statsTable tr:hover {
+  background: #f0f8ff;
+}
+
+/* мини-прогресс-бар внутри таблицы */
+.tableProgress {
+  display: inline-block;
+  width: 80px;
+  height: 20px;
+  background: #e0ecf5;
+  border-radius: 20px;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.tableProgressFill {
+  height: 100%;
+  border-radius: 20px;
+  background: #4da6ff;
+}
+
+.correctText {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.wrongText {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+/* блоки сравнения */
+.comparisonBlock {
+  margin-bottom: 30px;
+}
+
+.comparisonItem {
+  margin-bottom: 15px;
+}
+
+.comparisonLabel {
+  font-weight: 600;
+  color: #0a3b55;
+  margin-bottom: 5px;
+}
+
+/* loader */
+.loader {
+  text-align: center;
+  padding: 50px;
+  font-size: 1.2rem;
+  color: #1e6f9f;
+  font-weight: bold;
+}
+
+.errorBox {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 40px;
+  max-width: 400px;
+  margin: 50px auto;
+  box-shadow: 0 12px 0 #cce5ff;
+}
+
+.errorBox p {
+  color: #e74c3c;
+  margin-bottom: 20px;
+}
+
+.noData {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+}

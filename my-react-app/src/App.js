@@ -9,12 +9,12 @@ import TeachersPage from "./pages/admin/TeachersPage";
 import SchoolsPage from "./pages/admin/SchoolsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import ClassesPage from "./pages/admin/ClassesPage";
-import ClassStatistics from "./pages/teacher/ClassStatisticsPage";
-import StudentsPage from "./pages/teacher/StudentListPage";
+import ClassStatistics from "./pages/teacher/ClassStatisticsPage/ClassStatisticsPage";
+import StudentsPage from "./pages/teacher/StudentListPage/StudentListPage";
 import HomePage from "./pages/HomePage";
 import LevelMapPage from "./pages/student/LevelsMapPage/LevelsMapPage";
 import ProfilePage from "./pages/student/ProfilePage/ProfilePage";
-import GamePage from "./pages/game/GamePage";
+import GamePage from "./pages/GamePage/GamePage";
 import StatsPage from "./pages/student/StatsPage/StatsPage";
 
 function AppRoutes() {

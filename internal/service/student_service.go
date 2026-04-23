@@ -62,6 +62,14 @@ func (s *StudentServiceStruct) GetStudentLevelsMap(ctx context.Context, studentI
 		return nil, err
 	}
 
+	for i := 0; i < len(sections); i++ {
+		if sections[i].Id == position.SectionId && sections[i].LevelsCount < position.LevelOrder {
+			position.SectionId++
+			position.LevelOrder = 1
+			break
+		}
+	}
+
 	levelsMap := &model.LevelsMap{
 		Sections: sections,
 		Position: *position,

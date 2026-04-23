@@ -10,6 +10,7 @@ import (
 type SectionRepository interface {
 	GetSectionsByClass(ctx context.Context, class int, currentSection int) ([]model.Section, error)
 	GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error)
+	GetFirstStudentSection(ctx context.Context, studentId int) (int, error)
 }
 
 type SectionRepositoryStruct struct {
@@ -68,7 +69,7 @@ func (r *SectionRepositoryStruct) GetSectionsByClass(ctx context.Context, class 
 
 func (r *SectionRepositoryStruct) GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error) {
 	query := `
-		SELECT section_id, MAX(level_order)
+		SELECT section_id, MAX(level_order) + 1
 		FROM student_progress_level
 		WHERE user_id = $1
 		GROUP BY section_id
@@ -79,11 +80,34 @@ func (r *SectionRepositoryStruct) GetStudentPosition(ctx context.Context, studen
 	var pos model.StudentPosition
 	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&pos.SectionId, &pos.LevelOrder)
 	if err == sql.ErrNoRows {
-		return &model.StudentPosition{SectionId: 1, LevelOrder: 0}, nil
+		sectionId, err := r.GetFirstStudentSection(ctx, studentId)
+		if err != nil {
+			return nil, err
+		}
+		return &model.StudentPosition{SectionId: sectionId, LevelOrder: 1}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &pos, nil
+}
+
+func (r *SectionRepositoryStruct) GetFirstStudentSection(ctx context.Context, studentId int) (int, error) {
+	query := `
+		SELECT sections.id
+		FROM sections
+		JOIN classes ON sections.class = classes.grade
+		JOIN users ON users.class_id = classes.id
+		WHERE section_order = 1 AND users.id = $1
+		LIMIT 1;
+	`
+
+	var sectionId int
+	err := r.db.QueryRowContext(ctx, query, studentId).Scan(&sectionId)
+	if err != nil {
+		return 0, err
+	}
+
+	return sectionId, nil
 }

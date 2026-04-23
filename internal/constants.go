@@ -43,3 +43,7 @@ const (
 	OpenClaw             = "("
 	CloseClaw            = ")"
 )
+
+const (
+	StudentRoleId = 1
+)

@@ -1,0 +1,224 @@
+/* StudentsPage.module.css */
+.page {
+  background: linear-gradient(145deg, #e8f4ff 0%, #ffffff 100%);
+  min-height: 100vh;
+  padding: 30px 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e6f9f, #4da6ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+}
+
+/* карточка формы */
+.formCard {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 40px;
+  padding: 25px 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 12px 0 #cce5ff;
+  border: 2px solid white;
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1e6f9f;
+  margin-bottom: 20px;
+  border-left: 6px solid #4da6ff;
+  padding-left: 15px;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-weight: 600;
+  color: #0a3b55;
+  font-size: 0.9rem;
+}
+
+.inputField {
+  padding: 12px 16px;
+  border: 3px solid #cce5ff;
+  border-radius: 40px;
+  font-size: 1rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #4da6ff;
+  box-shadow: 0 0 0 3px rgba(77, 166, 255, 0.2);
+}
+
+.selectField {
+  padding: 12px 16px;
+  border: 3px solid #cce5ff;
+  border-radius: 40px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.formActions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.formButton {
+  background: #1e6f9f;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #0a3b55;
+  transition: all 0.1s ease;
+}
+
+.formButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #0a3b55;
+  background: #2c8bc0;
+}
+
+.formButton:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0a3b55;
+}
+
+.formButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background: #95a5a6;
+  box-shadow: 0 4px 0 #7f8c8d;
+}
+
+.cancelButton:hover {
+  background: #b0c4de;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #7f8c8d;
+}
+
+/* таблица */
+.tableWrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.studentsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.studentsTable th {
+  background: #1e6f9f;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.studentsTable td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #e0ecf5;
+}
+
+.studentsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.studentsTable tr:hover {
+  background: #f0f8ff;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.editButton {
+  background: #4da6ff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editButton:hover {
+  background: #2c8bc0;
+  transform: scale(1.02);
+}
+
+.deleteButton {
+  background: #e74c3c;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background: #c0392b;
+  transform: scale(1.02);
+}
+
+.emptyMessage {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 40px;
+}

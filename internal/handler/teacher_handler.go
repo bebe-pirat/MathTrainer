@@ -45,7 +45,7 @@ func (h *TeacherHandler) GetClassStats(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to get class's stats", "error", err)
 		return
 	}
-	
+
 	slog.Info("classStats", classStats)
 
 	w.Header().Set("Content-Type", "application/json")

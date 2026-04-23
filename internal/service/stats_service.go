@@ -4,7 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
-	"log/slog"
+	"database/sql"
 )
 
 type StatsService interface {
@@ -98,23 +98,30 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 		return nil, err
 	}
 
-	// тут остановилась, первый запрос поправила
-	slog.Info("student short stats", students)
+	// TODO: удалить, сделано исключительно для отладки
+	// slog.Info("student short stats", students)
 
 	studentCount := len(students)
 
 	totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		totalCount = 0
+	} else if err != nil {
 		return nil, err
 	}
 
 	wrongCount, err := s.attemptRepo.GetWrongAnswersByClassId(ctx, classId)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		wrongCount = 0
+	} else if err != nil {
 		return nil, err
 	}
 
 	correctCount := totalCount - wrongCount
-	accuracy := float32(correctCount) / float32(totalCount) * 100.0
+	accuracy := float32(0.0)
+	if totalCount != 0 {
+		accuracy = float32(correctCount) / float32(totalCount) * 100.0
+	}
 
 	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyByClassId(ctx, classId)
 	if err != nil {
@@ -129,54 +136,48 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 		Accuracy:       accuracy,
 		EquationTypes:  equationTypes,
 		Students:       students,
-	}, nil	
+	}, nil
 }
 
 func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int) (*model.StudentStats, error) {
 	totalCount, err := s.attemptRepo.GetTotalCountAttempts(ctx, studentId)
 	if err != nil {
-		slog.Info("total count")
 		return nil, err
 	}
 
 	wrongCount, err := s.attemptRepo.GetCountErrorAttempts(ctx, studentId)
 	if err != nil {
-		slog.Info("wrong count")
 		return nil, err
 	}
 
 	correctCount := totalCount - wrongCount
 	accuracy := float32(correctCount) / float32(totalCount) * 100.0
+
 	// TODO: удали, нужно было для отладки
 	// slog.Info("accuracy info", "accuracy", accuracy, "correct_count", correctCount, "total_count", totalCount, "wrong_count", wrongCount)
 
 	complitedLevels, err := s.progressRepo.GetCountComplitedLevels(ctx, studentId)
 	if err != nil {
-		slog.Info("levels count")
 		return nil, err
 	}
 
 	starsCount, err := s.progressRepo.GetTotalStars(ctx, studentId)
 	if err != nil {
-		slog.Info("stars count")
 		return nil, err
 	}
 
 	xp, err := s.studentRepo.GetStudentXP(ctx, studentId)
 	if err != nil {
-		slog.Info("xp count")
 		return nil, err
 	}
 
 	achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
 	if err != nil {
-		slog.Info("achieves")
 		return nil, err
 	}
 
 	equationTypes, err := s.attemptRepo.GetExtendedEquationTypeStats(ctx, studentId)
 	if err != nil {
-		slog.Info("types")
 		return nil, err
 	}
 

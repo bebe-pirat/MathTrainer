@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"MathTrainer/internal"
 	"MathTrainer/internal/model"
 	"context"
 	"database/sql"
@@ -54,7 +55,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentSectionStats(ctx context.Co
 	}
 	defer rows.Close()
 
-	var shortStats map[int]float32
+	shortStats := make(map[int]float32)
 	for rows.Next() {
 		var stat model.ShortEquationTypeStats
 
@@ -78,7 +79,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentSectionStats(ctx context.Co
 
 func (r *EquationAttemptsRepositoryStruct) CreateAttempt(ctx context.Context, e model.Attempt) error {
 	query := `
-		INSERT INTO attempts(user_id, equation_type_id, equation_text, correct_answer, student_answer, answered_at)
+		INSERT INTO attempts(student_id, equation_type_id, equation_text, correct_answer, student_answer, answered_at)
 		VALUES($1, $2, $3, $4, $5, $6)
 		RETURNING id
 	`
@@ -292,11 +293,11 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx co
 		FROM users	
 		LEFT JOIN attempts ON attempts.student_id = users.id
 		LEFT JOIN levels_complited ON levels_complited.user_id = users.id
-		WHERE users.class_id = $1
+		WHERE users.class_id = $1 AND users.role_id = $2
 		GROUP BY users.id, users.fullname, count_levels;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, classId)
+	rows, err := r.db.QueryContext(ctx, query, classId, internal.StudentRoleId)
 	if err != nil {
 		return nil, err
 	}
@@ -329,9 +330,9 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx co
 func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error) {
 	query := `
 		SELECT equation_types.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
-		FROM attempts
-		JOIN equation_types ON attempts.equation_type_id = equation_types.id
-		JOIN users ON users.id = attempts.student_id
+		FROM equation_types
+		LEFT JOIN attempts ON attempts.equation_type_id = equation_types.id
+		LEFT JOIN users ON users.id = attempts.student_id
 		WHERE users.class_id = $1
 		GROUP BY equation_types.name;
 	`
@@ -366,7 +367,7 @@ func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx 
 
 func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsByClassId(ctx context.Context, classId int) (int, error) {
 	query := `
-		SELECT count(*)
+		SELECT COUNT(*)
 		FROM attempts
 		JOIN users on users.id = attempts.student_id
 		WHERE users.class_id = $1
