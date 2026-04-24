@@ -129,6 +129,7 @@ function ClassStatistics() {
                     <th>Имя</th>
                     <th>Точность</th>
                     <th>Уровней пройдено</th>
+                    <th>Действия</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,6 +147,14 @@ function ClassStatistics() {
                         {student.accuracy}%
                       </td>
                       <td>{student.levels_complited}</td>
+                      <td>
+                        <button
+                          className={sharedStyles.smallButton}
+                          onClick={() => navigate(`/teacher/student-attempts/${student.student_id}`)}
+                        >
+                          Попытки
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -16,6 +16,7 @@ import LevelMapPage from "./pages/student/LevelsMapPage/LevelsMapPage";
 import ProfilePage from "./pages/student/ProfilePage/ProfilePage";
 import GamePage from "./pages/GamePage/GamePage";
 import StatsPage from "./pages/student/StatsPage/StatsPage";
+import StudentAttemptsPage from "./pages/teacher/StudentAttemptsPage/StudentAttemptsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -136,6 +137,15 @@ function AppRoutes() {
                         <ClassStatistics/>
                     </ProtectedRoute>
                 }
+            />
+
+            <Route 
+                path="/teacher/student-attempts/:studentId" 
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                        <StudentAttemptsPage />
+                    </ProtectedRoute>
+                } 
             />
 
             <Route

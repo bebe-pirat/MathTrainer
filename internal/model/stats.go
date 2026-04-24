@@ -64,6 +64,6 @@ type SchoolStats struct {
 }
 
 type ClassShortStats struct {
-	Name     string `json:"name"`
-	Accuracy int    `json:"accuracy_percent"`
+	Name     string  `json:"name"`
+	Accuracy float32 `json:"accuracy_percent"`
 }

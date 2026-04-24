@@ -26,3 +26,8 @@ type EquationTypeWithOperands struct {
 	MaxResult   int
 	Operands    []Operand
 }
+
+type ShortEquationType struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}

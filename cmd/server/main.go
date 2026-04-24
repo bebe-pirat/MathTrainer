@@ -73,7 +73,7 @@ func main() {
 	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo)
 	classService := service.NewClassServiceStruct(classRepo)
 	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
-	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo)
+	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo, equationRepo)
 	levelService := service.NewLevelServiceStruct(levelRepo, progressRepo)
 	studentService := service.NewStudentServiceStruct(userRepo, achievRepo, sectionRepo)
 	gameService := service.NewGameServiceStruct(equationRepo, attemptRepo, progressRepo, userRepo)
@@ -154,6 +154,8 @@ func createTeacherRouter(router *mux.Router, teacherHandler *handler.TeacherHand
 	teacherRouter.HandleFunc("/class/stats", teacherHandler.GetClassStats).Methods("GET")
 	teacherRouter.HandleFunc("/students", teacherHandler.GetStudents).Methods("GET")
 	teacherRouter.HandleFunc("/students/stats", teacherHandler.GetStudentById).Methods("GET")
+	teacherRouter.HandleFunc("/students/attempts", teacherHandler.GetStudentsAttempts).Methods("GET")
+	teacherRouter.HandleFunc("/equation-types", teacherHandler.GetEquationTypesByStudentId).Methods("GET")
 
 	teacherRouter.HandleFunc("/students", teacherHandler.CreateStudent).Methods("POST")
 

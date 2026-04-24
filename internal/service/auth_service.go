@@ -5,6 +5,7 @@ import (
 	"MathTrainer/internal/repository"
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 )
 
@@ -45,12 +46,19 @@ func (s *AuthServiceStruct) ValidateSession(ctx context.Context, sessionID int) 
 	return true, nil
 }
 
-// пока что так
 func (s *AuthServiceStruct) Login(ctx context.Context, login string, password string) (*model.SessionData, error) {
 	userId, err := s.userRepo.UserExists(ctx, login, password)
 	if err != nil {
 		return nil, err
 	}
+
+	go func() {
+		bgCtx := context.Background()
+
+		if err := s.userRepo.UpdateLastLoginUser(bgCtx, userId, time.Now()); err != nil {
+			slog.Info("failed to update last_login for user", "userId", userId, "error", err)
+		}
+	}()
 
 	sessionId, err := s.sessionRepo.CreateSession(ctx, userId, time.Now().Add(time.Hour*24))
 	if err != nil {

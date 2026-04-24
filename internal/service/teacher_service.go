@@ -4,18 +4,18 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
+	"database/sql"
 	"errors"
 	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	// "strings"
 )
 
 type TeacherService interface {
 	GetClassByTeacherId(ctx context.Context, teacherId int) (int, error)
 	GetClassStudents(ctx context.Context, classId int) ([]model.User, error)
-	//GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error)
+	GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error)
 
 	CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error)
 	UpdateStudent(ctx context.Context, studentId int, fullName, email string) error
@@ -42,13 +42,18 @@ func (s *TeacherServiceStruct) GetClassByTeacherId(ctx context.Context, teacherI
 	return s.userRepo.GetClassByUserId(ctx, teacherId)
 }
 
-// func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.StudentShortStats, error) {
-// 	if classId <= 0 {
-// 		return nil, errors.New("invalid id")
-// 	}
+func (s *TeacherServiceStruct) GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error) {
+	if studentId <= 0 {
+		return nil, errors.New("invalid student id")
+	}
 
-// 	return s.attemptRepo.GetStudentsShortStatsByClassId(ctx, classId)
-// }
+	attempts, err := s.attemptRepo.GetStudentAttempts(ctx, studentId, equation_type_id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return attempts, nil
+}
 
 func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int) ([]model.User, error) {
 	if classId <= 0 {

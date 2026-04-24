@@ -12,7 +12,7 @@ function AdminDashboard() {
           <LogoutButton />
         </div>
 
-        <h1 className={sharedStyles.dashboardTitle}>Административная панель</h1>
+        <h1 className={sharedStyles.dashboardTitle}>Панель администратора</h1>
         <div className={sharedStyles.dashboardSubtitle}>
           Управление школами, учителями, классами и пользователями
         </div>

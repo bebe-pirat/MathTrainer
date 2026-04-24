@@ -10,6 +10,7 @@ import (
 type EquationTypeRepository interface {
 	GetEquationTypesBySection(ctx context.Context, sectionId int) ([]model.EquationTypeWithOperands, error)
 	GetOperandsByEquationType(ctx context.Context, equationTypeId int) ([]model.Operand, error)
+	GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error)
 
 	// old and maybe unnessesary
 	// TODO: при ненадобности удалиьт нахер
@@ -104,6 +105,44 @@ func (r *EquationTypeRepositoryStruct) GetOperandsByEquationType(ctx context.Con
 	}
 
 	return operands, nil
+}
+
+func (r *EquationTypeRepositoryStruct) GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error) {
+	query := `
+		SELECT id, name
+		FROM equation_types
+		JOIN classes ON classes.grade = equation_types.class
+		JOIN users ON classes.id = users.class_id
+		WHERE users.id = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, studentId)
+	if err != nil {
+		return nil, fmt.Errorf("poerand get error: %w", err)
+	}
+	defer rows.Close()
+
+	var types []model.ShortEquationType
+	for rows.Next() {
+		var eqType model.ShortEquationType
+
+		err := rows.Scan(
+			&eqType.Id,
+			&eqType.Name,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("types get error: %w", err)
+		}
+
+		types = append(types, eqType)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("types get error: %w", err)
+	}
+
+	return types, nil
 }
 
 func (r *EquationTypeRepositoryStruct) GetAllEquationTypes(ctx context.Context) ([]model.EquationType, error) {
