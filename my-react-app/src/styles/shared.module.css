@@ -482,3 +482,27 @@ select option {
   color: #e74c3c;
   font-weight: bold;
 }
+
+.smallButton {
+  background: #4da6ff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 0 #1f618d;
+}
+
+.smallButton:hover {
+  background: #2c8bc0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #1f618d;
+}
+
+.smallButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #1f618d;
+}

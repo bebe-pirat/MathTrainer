@@ -16,6 +16,7 @@ type TeacherService interface {
 	GetClassByTeacherId(ctx context.Context, teacherId int) (int, error)
 	GetClassStudents(ctx context.Context, classId int) ([]model.User, error)
 	GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error)
+	GetEquationTypesByStudentId(ctx context.Context, studetnId int) ([]model.ShortEquationType, error) 
 
 	CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error)
 	UpdateStudent(ctx context.Context, studentId int, fullName, email string) error
@@ -25,12 +26,14 @@ type TeacherService interface {
 type TeacherServiceStruct struct {
 	userRepo    repository.UserRepository
 	attemptRepo repository.EquationAttemptsRepository
+	equationTypeRepo repository.EquationTypeRepository
 }
 
-func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo repository.EquationAttemptsRepository) *TeacherServiceStruct {
+func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo repository.EquationAttemptsRepository, equationTypeRepo repository.EquationTypeRepository) *TeacherServiceStruct {
 	return &TeacherServiceStruct{
 		userRepo:    userRepo,
 		attemptRepo: attemptRepo,
+		equationTypeRepo: equationTypeRepo,
 	}
 }
 
@@ -60,7 +63,7 @@ func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int
 		return nil, errors.New("invalid id")
 	}
 
-	return s.userRepo.GetStudentsByClass(ctx, classId)
+	return s.userRepo.GetStudentsByClass(ctx, classId)	
 }
 
 func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error) {
@@ -108,7 +111,16 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 	return &model.UserCredentials{Login: login, Password: password}, nil
 }
 
-func (s *TeacherServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) error { // метод не раотает))))
+func (s *TeacherServiceStruct) GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error)  {
+	if studentId <= 0 {
+		return nil, errors.New("bad requst")
+	}
+
+	return s.equationTypeRepo.GetEquationTypesByStudentId(ctx, studentId)
+}
+
+// TODO: метод не раюотает)))) исправить 
+func (s *TeacherServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) error { 
 	fullName = strings.TrimSpace(fullName)
 	if fullName == "" {
 		return errors.New("bad request")

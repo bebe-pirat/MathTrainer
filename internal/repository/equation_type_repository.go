@@ -109,7 +109,7 @@ func (r *EquationTypeRepositoryStruct) GetOperandsByEquationType(ctx context.Con
 
 func (r *EquationTypeRepositoryStruct) GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error) {
 	query := `
-		SELECT id, name
+		SELECT equation_types.id, equation_types.name
 		FROM equation_types
 		JOIN classes ON classes.grade = equation_types.class
 		JOIN users ON classes.id = users.class_id

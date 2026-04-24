@@ -35,6 +35,7 @@ function StudentAttemptsPage() {
     setLoading(true);
     try {
       let url = `${BASE_URL}/teacher/students/attempts?student_id=${studentId}`;
+      console.log(url)
       if (selectedTypeId) {
         url += `&equation_type_id=${selectedTypeId}`;
       }

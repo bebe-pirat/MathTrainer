@@ -201,19 +201,27 @@ func (h *TeacherHandler) DeleteStudent(w http.ResponseWriter, r *http.Request) {
 func (h *TeacherHandler) GetStudentsAttempts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	studentId, err := strconv.Atoi(vars["student_id"])
+	studentIdStr := r.URL.Query().Get("student_id")
+	if studentIdStr == "" {
+		http.Error(w, "missing student_id", http.StatusBadRequest)
+		slog.Error("missing student_id parameter")
+		return
+	}
+	studentId, err := strconv.Atoi(studentIdStr)
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("bad request", "error", err)
+		http.Error(w, "invalid student_id", http.StatusBadRequest)
+		slog.Error("invalid student_id", "error", err)
 		return
 	}
 
-	equationTypeId, err := strconv.Atoi(vars["equation_type_id"])
-	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("bad request", "error", err)
-		return
+	equationTypeId := 0
+	if eqTypeStr := r.URL.Query().Get("equation_type_id"); eqTypeStr != "" {
+		equationTypeId, err = strconv.Atoi(eqTypeStr)
+		if err != nil {
+			http.Error(w, "invalid equation_type_id", http.StatusBadRequest)
+			slog.Error("invalid equation_type_id", "error", err)
+			return
+		}
 	}
 
 	attempts, err := h.teacherService.GetStudentAttempts(ctx, studentId, equationTypeId)
@@ -227,6 +235,37 @@ func (h *TeacherHandler) GetStudentsAttempts(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(attempts); err != nil {
+		slog.Error("serialization failed", "error", err)
+	}
+}
+
+func (h *TeacherHandler) GetEquationTypesByStudentId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	studentIdStr := r.URL.Query().Get("student_id")
+	if studentIdStr == "" {
+		http.Error(w, "missing student_id", http.StatusBadRequest)
+		slog.Error("missing student_id parameter")
+		return
+	}
+	studentId, err := strconv.Atoi(studentIdStr)
+	if err != nil {
+		http.Error(w, "invalid student_id", http.StatusBadRequest)
+		slog.Error("invalid student_id", "error", err)
+		return
+	}
+
+	types, err := h.teacherService.GetEquationTypesByStudentId(ctx, studentId)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		slog.Error("internal server error", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(types); err != nil {
 		slog.Error("serialization failed", "error", err)
 	}
 }
