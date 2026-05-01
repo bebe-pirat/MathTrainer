@@ -14,6 +14,7 @@ type AuthService interface {
 	Logout(ctx context.Context, session_id int) error
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
 	ValidateSession(ctx context.Context, sessionID int) (bool, error)
+	IsUserBlocked(ctx context.Context, userId int) (bool, error)
 }
 
 type AuthServiceStruct struct {
@@ -93,4 +94,12 @@ func (s *AuthServiceStruct) UpdateLastLoginUser(ctx context.Context, id int, las
 	}
 
 	return s.userRepo.UpdateLastLoginUser(ctx, id, lastLogin)
+}
+
+func (s *AuthServiceStruct) IsUserBlocked(ctx context.Context, userId int) (bool, error) {
+	if userId <= 0 {
+		return false, errors.New("bad request")
+	}
+
+	return s.userRepo.IsUserBlocked(ctx, userId)
 }

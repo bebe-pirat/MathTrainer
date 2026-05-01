@@ -16,6 +16,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, e model.User) (*model.User, error)
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
 	BlockUser(ctx context.Context, id int, blocked bool) error
+	IsUserBlocked(ctx context.Context, userId int) (bool, error)
 
 	DeleteUser(ctx context.Context, id int) error
 
@@ -154,6 +155,22 @@ func (r *UserRepositoryStruct) BlockUser(ctx context.Context, id int, blocked bo
 	}
 
 	return nil
+}
+
+func (r *UserRepositoryStruct) IsUserBlocked(ctx context.Context, userId int) (bool, error) {
+	query := `
+		SELECT blocked
+		FROM users
+		WHERE id = $1;
+	`
+
+	var blocked bool
+	err := r.db.QueryRowContext(ctx, query, userId).Scan(&blocked)
+	if err != nil {
+		return false, err
+	}
+
+	return blocked, nil
 }
 
 func (r *UserRepositoryStruct) UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error {

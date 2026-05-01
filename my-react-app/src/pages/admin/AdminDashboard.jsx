@@ -25,7 +25,7 @@ function AdminDashboard() {
             <div className={sharedStyles.dashboardCardIcon}>🏫</div>
             <div className={sharedStyles.dashboardCardTitle}>Школы</div>
             <div className={sharedStyles.dashboardCardDesc}>
-              Добавление, редактирование, удаление школ
+              Добавление школ
             </div>
           </div>
 

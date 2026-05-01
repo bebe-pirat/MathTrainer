@@ -108,7 +108,7 @@ function GamePage() {
         <div className={styles.header}>
           <button
             className={sharedStyles.headerButton}
-            onClick={() => navigate("/student/levels-map")}
+            onClick={() => navigate("/student/Dashboard")}
           >
             Назад
           </button>
@@ -160,7 +160,7 @@ function GamePage() {
             <div className={styles.stars}>
               {"⭐".repeat(result.stars)}
             </div>
-            <div className={styles.xp}>Получено XP: +{result.common_xp}</div>
+            <div className={styles.xp}>Получено XP: {result.common_xp}</div>
             <button
               className={styles.actionButton}
               onClick={() => navigate("/student/dashboard")}

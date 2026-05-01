@@ -21,27 +21,27 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 func (h *AuthHandler) CheckSession(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	slog.Info("i am here")
-	
+
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
-		http.Error(w, "failed to find session",http.StatusUnauthorized )
+		http.Error(w, "failed to find session", http.StatusUnauthorized)
 		slog.Info("no active session found")
 		return
 	}
-	
+
 	valid, err := h.authService.ValidateSession(ctx, sessionData.SessionID)
 	if err != nil || !valid {
 		clearSessionCookie(w)
-		http.Error(w, "session expired or invalid",http.StatusUnauthorized )
+		http.Error(w, "session expired or invalid", http.StatusUnauthorized)
 		slog.Info("invalid session", "session_id", sessionData.SessionID)
 		return
 	}
-	
+
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(sessionData); err != nil {
 		slog.Info("failed to serialize sessionData", "user_id", sessionData.UserID)
 	}
-	
+
 	slog.Info("session checked successfully", "user_id", sessionData.UserID)
 }
 
@@ -66,6 +66,19 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "something went wrong auth", http.StatusInternalServerError)
 		slog.Error("authentication failed", "error", err)
+		return
+	}
+
+	blocked, err := h.authService.IsUserBlocked(ctx, sessionData.UserID)
+	if err != nil {
+		http.Error(w, "something went wrong auth", http.StatusInternalServerError)
+		slog.Error("authentication failed", "error", err)
+		return
+	}
+
+	if blocked {
+		http.Error(w, "Failed to log in cause user is blocked", http.StatusForbidden)
+		slog.Error("authentication failed", "blocked", blocked)
 		return
 	}
 

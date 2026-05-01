@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import { BASE_URL } from "../../constants";
 import { ROLES } from "../../constants";
+import Modal from "../../components/Modal/Modal";
 import styles from "./Login.module.css";
 
 function Login()  {
@@ -10,6 +11,7 @@ function Login()  {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [modal, setModal] = useState({ isOpen: false, title: "", message: "" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +24,19 @@ function Login()  {
     });
 
     if (!response.ok) {
-      alert("Ошибка входа. Проверьте логин и пароль.");
+      if (response.status === 403) {
+        setModal({
+          isOpen: true,
+          title: "Доступ ограничен",
+          message: "Пользователь заблокирован! Обратитесь к преподавателю или администратору для получения доступа к аккаунту.",
+        });
+      } else {
+        setModal({
+          isOpen: true,
+          title: "Ошибка входа",
+          message: "Проверьте логин и пароль.",
+        });
+      }
       return;
     }
 
@@ -66,6 +80,12 @@ function Login()  {
           </button>
         </form>
       </div>
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={() => setModal({ isOpen: false, title: "", message: "" })}
+        title={modal.title}
+        message={modal.message}
+      />
     </div>
   );
 }
