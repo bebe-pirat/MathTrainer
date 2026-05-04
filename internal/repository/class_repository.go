@@ -10,6 +10,7 @@ type ClassRepository interface {
 	CreateClass(ctx context.Context, e model.Class) (int, error)
 	UpdateClass(ctx context.Context, e model.Class) (*model.Class, error)
 	DeleteClass(ctx context.Context, id int) error
+
 	GetClassById(ctx context.Context, id int) (*model.Class, error)
 	GetAllClasses(ctx context.Context) ([]model.Class, error)
 	GetClassesBySchoolId(ctx context.Context, schoolId int) ([]model.Class, error)

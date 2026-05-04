@@ -9,10 +9,8 @@ import (
 type StudentProgressRepository interface {
 	CreateStudentProgressLevel(ctx context.Context, progress model.StudentProgress) error
 
-	// старое
-	StartLevel(ctx context.Context, studentId, LevelOrder int) error
-	FinishLevel(ctx context.Context, e model.StudentProgress) (*model.StudentProgress, error)
-
+	// где то должно использоваться, например, в статистике прохождения уровнение и ли что-то подобное
+	// TODO: пофиксить
 	GetStudentProgress(ctx context.Context, studentId int) ([]model.StudentProgress, error)
 	GetLevelProgress(ctx context.Context, studentId, LevelOrder int) ([]model.StudentProgress, error)
 

@@ -9,14 +9,12 @@ import (
 
 type StudentHandler struct {
 	studentService service.StudentService
-	levelService   service.LevelService
 	statsService   service.StatsService
 }
 
-func NewStudentHandler(studentService service.StudentService, levelService service.LevelService, statsService service.StatsService) *StudentHandler {
+func NewStudentHandler(studentService service.StudentService, statsService service.StatsService) *StudentHandler {
 	return &StudentHandler{
 		studentService: studentService,
-		levelService:   levelService,
 		statsService:   statsService,
 	}
 }

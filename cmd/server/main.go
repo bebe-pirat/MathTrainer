@@ -64,7 +64,6 @@ func main() {
 	attemptRepo := repository.NewEquationAttemptsRepositoryStruct(db)
 	progressRepo := repository.NewStudentProgressRepositoryStruct(db)
 	achievRepo := repository.NewAchievementOfStudentRepositoryStruct(db)
-	levelRepo := repository.NewLevelRepositoryStruct(db)
 	sectionRepo := repository.NewSectionRepositoryStruct(db)
 	equationRepo := repository.NewEquationTypeRepositoryStruct(db)
 
@@ -74,7 +73,6 @@ func main() {
 	classService := service.NewClassServiceStruct(classRepo)
 	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo, equationRepo)
-	levelService := service.NewLevelServiceStruct(levelRepo, progressRepo)
 	studentService := service.NewStudentServiceStruct(userRepo, achievRepo, sectionRepo)
 	gameService := service.NewGameServiceStruct(equationRepo, attemptRepo, progressRepo, userRepo)
 
@@ -82,7 +80,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 	adminHandler := handler.NewAdminHandler(adminService, classService)
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
-	studentHandler := handler.NewStudentHandler(studentService, levelService, statsService)
+	studentHandler := handler.NewStudentHandler(studentService, statsService)
 	equationHandler := handler.NewEquationHandler(gameService)
 
 	mainRouter := mux.NewRouter()

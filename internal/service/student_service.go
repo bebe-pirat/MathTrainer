@@ -11,6 +11,7 @@ type StudentService interface {
 	GetProfile(ctx context.Context, studentID int) (*model.StudentProfile, error)
 	GetAchievements(ctx context.Context, studentID int) ([]model.AchievementOfStudent, error)
 	GetStudentLevelsMap(ctx context.Context, studentId int) (*model.LevelsMap, error)
+	// TODO: добавить метод для получения ачивки
 }
 
 type StudentServiceStruct struct {
@@ -39,7 +40,7 @@ func (s *StudentServiceStruct) GetAchievements(ctx context.Context, studentID in
 		return nil, errors.New("invalid id")
 	}
 
-	return s.achRepo.GetAchievementOfStudentsByStudentId(ctx, studentID)
+	return s.achRepo.GetAchievemntsByStudentId(ctx, studentID)
 }
 
 func (s *StudentServiceStruct) GetStudentLevelsMap(ctx context.Context, studentId int) (*model.LevelsMap, error) {

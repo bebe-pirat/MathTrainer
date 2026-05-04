@@ -10,12 +10,10 @@ import (
 type EquationAttemptsRepository interface {
 	GetStudentSectionStats(ctx context.Context, studentId int, sectionId int) (map[int]float32, error)
 
-	// // старое))))))))
 	CreateAttempt(ctx context.Context, e model.Attempt) error
-	// TODO: продумать насчет пагинации
 	GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error)
 
-	// // school stats
+    // school stats
 	GetTotalAttemptsBySchoolId(ctx context.Context, schoolId int) (int, error)
 	GetWrongAnswersBySchoolId(ctx context.Context, schoolId int) (int, error)
 	GetClassesAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.ClassShortStats, error)

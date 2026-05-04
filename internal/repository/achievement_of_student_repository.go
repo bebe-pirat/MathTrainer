@@ -7,10 +7,9 @@ import (
 )
 
 type AchievementOfStudentRepository interface {
-	CreateAchieveOfStud(ctx context.Context, e model.AchievementOfStudent) error
-	GetAllAchievementOfStudents(ctx context.Context) ([]model.AchievementOfStudent, error)
-	GetAchievementOfStudentsByStudentId(ctx context.Context, studentId int) ([]model.AchievementOfStudent, error)
-	GetAchievementOfStudentsByAchievementId(ctx context.Context, achievementId int) ([]model.AchievementOfStudent, error)
+	GiveAchievementToStudent(ctx context.Context, e model.AchievementOfStudent) error
+	GetAchievemntsByStudentId(ctx context.Context, studentId int) ([]model.AchievementOfStudent, error)
+	GetAchievemntById(ctx context.Context, id int) (*model.Achievement, error)
 }
 
 type AchievementOfStudentRepositoryStruct struct {
@@ -23,7 +22,7 @@ func NewAchievementOfStudentRepositoryStruct(db *sql.DB) *AchievementOfStudentRe
 	}
 }
 
-func (r *AchievementOfStudentRepositoryStruct) CreateAchieveOfStud(ctx context.Context, e model.AchievementOfStudent) error {
+func (r *AchievementOfStudentRepositoryStruct) GiveAchievementToStudent(ctx context.Context, e model.AchievementOfStudent) error {
 	query := `
 		INSERT INTO achievements_of_students(student_id, achievement_id, got_at)
 		VALUES ($1, $2, $3)
@@ -40,42 +39,7 @@ func (r *AchievementOfStudentRepositoryStruct) CreateAchieveOfStud(ctx context.C
 	return nil
 }
 
-func (r *AchievementOfStudentRepositoryStruct) GetAllAchievementOfStudents(ctx context.Context) ([]model.AchievementOfStudent, error) {
-	query := `
-		SELECT student_id, achievement_id, got_at
-		FROM achievements_of_students 
-	`
-
-	rows, err := r.db.QueryContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	achs := make([]model.AchievementOfStudent, 0)
-	for rows.Next() {
-		var ach model.AchievementOfStudent
-		err := rows.Scan(
-			&ach.StudentId,
-			&ach.AchievementId,
-			&ach.GotAt,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		achs = append(achs, ach)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return achs, nil
-}
-
-func (r *AchievementOfStudentRepositoryStruct) GetAchievementOfStudentsByStudentId(ctx context.Context, studentId int) ([]model.AchievementOfStudent, error) {
+func (r *AchievementOfStudentRepositoryStruct) GetAchievemntsByStudentId(ctx context.Context, studentId int) ([]model.AchievementOfStudent, error) {
 	query := `
 		SELECT student_id, achievement_id, got_at
 		FROM achievements_of_students 
@@ -111,38 +75,22 @@ func (r *AchievementOfStudentRepositoryStruct) GetAchievementOfStudentsByStudent
 	return achs, nil
 }
 
-func (r *AchievementOfStudentRepositoryStruct) GetAchievementOfStudentsByAchievementId(ctx context.Context, achievementId int) ([]model.AchievementOfStudent, error) {
+func (r *AchievementOfStudentRepositoryStruct) GetAchievemntById(ctx context.Context, id int) (*model.Achievement, error) {
 	query := `
-		SELECT student_id, achievement_id, got_at
-		FROM achievements_of_students 
-		WHERE achievement_id = $1
+		SELECT id, name, description
+		FROM achievements
+		WHERE id = $1;
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, achievementId)
+	var ach model.Achievement
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&ach.Id,
+		&ach.Name,
+		&ach.Description,
+	)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	achs := make([]model.AchievementOfStudent, 0)
-	for rows.Next() {
-		var ach model.AchievementOfStudent
-		err := rows.Scan(
-			&ach.StudentId,
-			&ach.AchievementId,
-			&ach.GotAt,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		achs = append(achs, ach)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return achs, nil
+	return &ach, nil
 }

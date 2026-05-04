@@ -171,7 +171,7 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 		return nil, err
 	}
 
-	achievements, err := s.achievRepo.GetAchievementOfStudentsByStudentId(ctx, studentId)
+	achievements, err := s.achievRepo.GetAchievemntsByStudentId(ctx, studentId)
 	if err != nil {
 		return nil, err
 	}

@@ -12,11 +12,7 @@ type EquationTypeRepository interface {
 	GetOperandsByEquationType(ctx context.Context, equationTypeId int) ([]model.Operand, error)
 	GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error)
 
-	// old and maybe unnessesary
-	// TODO: при ненадобности удалиьт нахер
-	GetAllEquationTypes(ctx context.Context) ([]model.EquationType, error)
-	GetEquationTypeById(ctx context.Context, id int) (*model.EquationType, error)
-	// GetEquationTypesByLevelId(ctx context.Context, levelId int) ([]model.EquationType, error)
+	// TODO: добавить метод для создания типа уравнения + внесение запписи в таблицу операндов, можно еще обновление и удаление
 }
 
 type EquationTypeRepositoryStruct struct {
