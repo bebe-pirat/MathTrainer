@@ -1,4 +1,8 @@
-### ДИПЛОМ
+# MathTrainer
+
+## Description
+A math trainer for developing counting skills (addition, substraction, multiplication, division) for students of primary school. Built for student to solve tasks, for teacher to track their progress.  
+
 # TODO list: 
 * добавить место в школе и место в классе для ученика 
 * добавить удаление/изменение пользователей пользователей для админа
