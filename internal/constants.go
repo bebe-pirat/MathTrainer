@@ -46,4 +46,7 @@ const (
 
 const (
 	StudentRoleId = 1
+	AdminRoleId   = 2
+	TeacherRoleId = 3
+	HeadRoleId    = 4
 )

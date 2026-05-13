@@ -13,10 +13,11 @@ import (
 type UserRepository interface {
 	CreateUser(ctx context.Context, e model.User) (string, error)
 
-	UpdateUser(ctx context.Context, e model.User) (*model.User, error)
+	UpdateUser(ctx context.Context, e model.User) error
 	UpdateLastLoginUser(ctx context.Context, id int, lastLogin time.Time) error
 	BlockUser(ctx context.Context, id int, blocked bool) error
 	IsUserBlocked(ctx context.Context, userId int) (bool, error)
+	UpdateUserPassword(ctx context.Context, id int, passwordHash []byte) (string, error)
 
 	DeleteUser(ctx context.Context, id int) error
 
@@ -111,32 +112,27 @@ func (r *UserRepositoryStruct) CreateUser(ctx context.Context, e model.User) (st
 	return login, err
 }
 
-func (r *UserRepositoryStruct) UpdateUser(ctx context.Context, e model.User) (*model.User, error) {
+func (r *UserRepositoryStruct) UpdateUser(ctx context.Context, e model.User) error {
 	query := `
 		UPDATE users 
-		SET email = $1, login = $2, password_hash = $3, role_id = $4, blocked = $5, fullname = $6, class_id = $7
-		WHERE id = $8
-		RETURNING *
+		SET email = $1, login = $2, role_id = $3, blocked = $4, fullname = $5, class_id = $6
+		WHERE id = $7;
 	`
 
-	var user model.User
-	err := r.db.QueryRowContext(ctx, query, e.Email, e.Login, e.PasswordHash, e.RoleId, e.Blocked, e.FullName, e.ClassId, e.Id).Scan(
-		user.Id,
-		user.Email,
-		e.Login,
-		e.PasswordHash,
-		e.RoleId,
-		e.Blocked,
-		e.FullName,
-		e.ClassId,
-		e.CreatedAt,
-		e.LastLogin,
-	)
+	res, err := r.db.ExecContext(ctx, query, e.Email, e.Login, e.RoleId, e.Blocked, e.FullName, e.ClassId, e.Id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &user, nil
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
 func (r *UserRepositoryStruct) BlockUser(ctx context.Context, id int, blocked bool) error {
@@ -189,6 +185,23 @@ func (r *UserRepositoryStruct) UpdateLastLoginUser(ctx context.Context, id int, 
 	}
 
 	return nil
+}
+
+func (r *UserRepositoryStruct) UpdateUserPassword(ctx context.Context, id int, passwordHash []byte) (string, error) {
+	query := `
+		UPDATE users 
+		SET password_hash = $1
+		WHERE id = $2
+		RETURNING login;
+	`
+
+	var login string
+	err := r.db.QueryRowContext(ctx, query, passwordHash, id).Scan(&login)
+	if err != nil {
+		return "", err
+	}
+
+	return login, nil
 }
 
 func (r *UserRepositoryStruct) DeleteUser(ctx context.Context, id int) error {

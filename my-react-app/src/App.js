@@ -7,7 +7,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard/TeacherDashboard";
 import TeachersPage from "./pages/admin/TeachersPage";
 import SchoolsPage from "./pages/admin/SchoolsPage";
-import UsersPage from "./pages/admin/UsersPage";
+import UsersPage from "./pages/admin/UsersPage/UsersPage";
 import ClassesPage from "./pages/admin/ClassesPage";
 import ClassStatistics from "./pages/teacher/ClassStatisticsPage/ClassStatisticsPage";
 import StudentsPage from "./pages/teacher/StudentListPage/StudentListPage";

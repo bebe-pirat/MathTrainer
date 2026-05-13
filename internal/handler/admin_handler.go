@@ -384,3 +384,156 @@ func (h *AdminHandler) GetSections(w http.ResponseWriter, r *http.Request) {
 		slog.Error("serializtion failed", "error", err)
 	}
 }
+
+func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req model.CreateAndUpdateUserRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		slog.Error("invalid input to create user", "error", err, "req", req)
+		return
+	}
+	slog.Error("usyy ass bithc")
+
+	creds, err := h.adminService.CreateUser(ctx, req)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to create user jj", "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to create new user", http.StatusInternalServerError)
+		slog.Error("failed to create user", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(creds); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
+
+func (h *AdminHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	if idStr == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("no id for update user")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("failed to convertd id to int update user", "error", err)
+	}
+
+	var req model.CreateAndUpdateUserRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		slog.Error("invalid input to update user", "error", err)
+		return
+	}
+
+	req.Id = id
+	err = h.adminService.UpdateUser(ctx, req)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to update user", "error", err)
+		return
+	}
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "not found", http.StatusBadRequest)
+		slog.Error("failed to found user for update ", "error", err, "id", id)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to update user", http.StatusInternalServerError)
+		slog.Error("failed to update user", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	if idStr == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("no id for update user")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("failed to convertd id to int update user", "error", err)
+	}
+
+	err = h.adminService.DeleteUser(ctx, id)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to update user", "error", err)
+		return
+	}
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "not found", http.StatusBadRequest)
+		slog.Error("failed to found user for delete ", "error", err, "id", id)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to delete user", http.StatusInternalServerError)
+		slog.Error("failed to delete user", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	slog.Info("holas")
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	if idStr == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("no id for update user")
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("failed to convertd id to int update user", "error", err)
+	}
+
+	creds, err := h.adminService.UpdatePassword(ctx, id)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to create user", "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to change user password", http.StatusInternalServerError)
+		slog.Error("failed to change user password", "error", err, "id", id)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(creds); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}

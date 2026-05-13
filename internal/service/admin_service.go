@@ -1,6 +1,7 @@
 package service
 
 import (
+	"MathTrainer/internal"
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
@@ -21,6 +22,10 @@ type AdminService interface {
 	CreateTeacher(ctx context.Context, fullName, login, email string, classId int) (*model.UserCredentials, error)
 	ChangeBlockingUser(ctx context.Context, userId int, blocked bool) error
 	GetAllUsers(ctx context.Context) ([]model.User, error)
+	CreateUser(ctx context.Context, e model.CreateAndUpdateUserRequest) (*model.UserCredentials, error)
+	UpdateUser(ctx context.Context, e model.CreateAndUpdateUserRequest) error
+	DeleteUser(ctx context.Context, id int) error
+	UpdatePassword(ctx context.Context, userId int) (*model.UserCredentials, error)
 
 	CreateSection(ctx context.Context, section model.Section) error
 	UpdateSection(ctx context.Context, section model.Section) error
@@ -75,17 +80,17 @@ func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login,
 
 	fullName = strings.TrimSpace(fullName)
 	if fullName == "" {
-		return nil, errors.New("bad request")
+		return nil, model.BadRequest("no fullname")
 	}
 
 	email = strings.TrimSpace(email)
 	if email == "" {
-		return nil, errors.New("bad request")
+		return nil, model.BadRequest("no email")
 	}
 
 	login = strings.TrimSpace(login)
 	if login == "" {
-		return nil, errors.New("bad request")
+		return nil, model.BadRequest("no login")
 	}
 
 	password, err := GenerateRandomPassword()
@@ -103,7 +108,7 @@ func (s *AdminServiceStruct) CreateTeacher(ctx context.Context, fullName, login,
 		Login:        login,
 		FullName:     fullName,
 		PasswordHash: passwordHash,
-		RoleId:       3, // тут убрать эту херню, заменить на что-то адекватное, тупая я 2 роль - алмин, а 3 - учитель
+		RoleId:       internal.TeacherRoleId,
 		Blocked:      false,
 		ClassId:      &classId,
 		CreatedAt:    time.Now(),
@@ -169,72 +174,140 @@ func (s *AdminServiceStruct) GetSections(ctx context.Context, class int) ([]mode
 	return s.sectionRepo.GetSections(ctx, class)
 }
 
-// func (s *UserServiceStruct) CreateUser(ctx context.Context, e model.User) (int, error) {
-// 	e.PasswordHash = strings.TrimSpace(e.PasswordHash)
-// 	if e.PasswordHash == "" {
-// 		return 0, errors.New("passwords is required")
-// 	}
-// 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(e.PasswordHash), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-// 	e.PasswordHash = string(passwordHash)
+func (s *AdminServiceStruct) CreateUser(ctx context.Context, e model.CreateAndUpdateUserRequest) (*model.UserCredentials, error) {
+	e.Email = strings.TrimSpace(e.Email)
+	if e.Email == "" {
+		return nil, model.BadRequest("no EMAIL")
+	}
 
-// 	e.Email = strings.TrimSpace(e.Email)
-// 	if e.Email == "" {
-// 		return 0, errors.New("email is required")
-// 	}
+	e.Login = strings.TrimSpace(e.Login)
+	if e.Login == "" {
+		return nil, model.BadRequest("no LOGIN")
+	}
 
-// 	e.Login = strings.TrimSpace(e.Login)
-// 	if e.Login == "" {
-// 		return 0, errors.New("login is required")
-// 	}
+	e.FullName = strings.TrimSpace(e.FullName)
+	if e.FullName == "" {
+		return nil, model.BadRequest("no fullname")
+	}
 
-// 	e.FullName = strings.TrimSpace(e.FullName)
-// 	if e.FullName == "" {
-// 		return 0, errors.New("fullname is required")
-// 	}
+	if e.RoleId != internal.AdminRoleId && e.RoleId != internal.HeadRoleId && e.ClassId == nil {
+		return nil, model.BadRequest("NON ADMIN CAN NOT HAVE NO CLASS")
 
-// 	return s.userRepo.CreateUser(ctx, e)
-// }
+	}
 
-// func (s *UserServiceStruct) UpdateUser(ctx context.Context, e model.User) (*model.User, error) {
-// 	e.PasswordHash = strings.TrimSpace(e.PasswordHash)
-// 	if e.PasswordHash == "" {
-// 		return nil, errors.New("passwords is required")
-// 	}
-// 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(e.PasswordHash), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	e.PasswordHash = string(passwordHash)
+	password, err := GenerateRandomPassword()
+	if err != nil {
+		return nil, err
+	}
 
-// 	e.Email = strings.TrimSpace(e.Email)
-// 	if e.Email == "" {
-// 		return nil, errors.New("email is required")
-// 	}
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
 
-// 	e.Login = strings.TrimSpace(e.Login)
-// 	if e.Login == "" {
-// 		return nil, errors.New("login is required")
-// 	}
+	user := model.User{
+		Email:        e.Email,
+		Login:        e.Login,
+		PasswordHash: passwordHash,
+		RoleId:       e.RoleId,
+		FullName:     e.FullName,
+		Blocked:      false,
+		ClassId:      e.ClassId,
+		CreatedAt:    time.Now(),
+	}
 
-// 	e.FullName = strings.TrimSpace(e.FullName)
-// 	if e.FullName == "" {
-// 		return nil, errors.New("fullname is required")
-// 	}
+	login, err := s.userRepo.CreateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
 
-// 	return s.userRepo.UpdateUser(ctx, e)
-// }
+	return &model.UserCredentials{Login: login, Password: password}, nil
+}
 
-// func (s *UserServiceStruct) DeleteUser(ctx context.Context, id int) error {
-// 	if id <= 0 {
-// 		return errors.New("bad request")
-// 	}
+func (s *AdminServiceStruct) UpdateUser(ctx context.Context, e model.CreateAndUpdateUserRequest) error {
+	e.Email = strings.TrimSpace(e.Email)
+	if e.Email == "" {
+		return model.ErrBadRequest
+	}
 
-// 	return s.userRepo.DeleteUser(ctx, id)
-// }
+	e.Login = strings.TrimSpace(e.Login)
+	if e.Login == "" {
+		return model.ErrBadRequest
+	}
 
-// func (s *UserServiceStruct) GetAllUsers(ctx context.Context) ([]model.User, error) {
-// 	return s.userRepo.GetAllUsers(ctx)
-// }
+	e.FullName = strings.TrimSpace(e.FullName)
+	if e.FullName == "" {
+		return model.ErrBadRequest
+	}
+
+	if e.RoleId != internal.AdminRoleId && e.RoleId != internal.HeadRoleId && e.ClassId == nil {
+		return model.ErrBadRequest
+	}
+
+	if e.Id <= 0 {
+		return model.ErrBadRequest
+	}
+
+	user := model.User{
+		Id:        e.Id,
+		Email:     e.Email,
+		Login:     e.Login,
+		RoleId:    e.RoleId,
+		FullName:  e.FullName,
+		Blocked:   false,
+		ClassId:   e.ClassId,
+		CreatedAt: time.Now(),
+	}
+
+	err := s.userRepo.UpdateUser(ctx, user)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return model.NotFound(err.Error())
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *AdminServiceStruct) DeleteUser(ctx context.Context, id int) error {
+	if id <= 0 {
+		return model.ErrBadRequest
+	}
+
+	err := s.userRepo.DeleteUser(ctx, id)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return model.ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *AdminServiceStruct) UpdatePassword(ctx context.Context, userId int) (*model.UserCredentials, error) {
+	if userId <= 0 {
+		return nil, model.ErrBadRequest
+	}
+
+	password, err := GenerateRandomPassword()
+	if err != nil {
+		return nil, err
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	login, err := s.userRepo.UpdateUserPassword(ctx, userId, passwordHash)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return nil, model.NotFound(err.Error())
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.UserCredentials{Login: login, Password: password}, nil
+}

@@ -93,7 +93,7 @@ func main() {
 		AllowedOrigins:   []string{"http://localhost:3001"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
 	})
 
 	server := &http.Server{
@@ -145,6 +145,11 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	adminRouter.HandleFunc("/sections/{id}", adminHandler.UpdateSection).Methods("PUT")
 	adminRouter.HandleFunc("/sections/{id}", adminHandler.DeleteSection).Methods("DELETE")
 	adminRouter.HandleFunc("/sections", adminHandler.GetSections).Methods("GET")
+
+	adminRouter.HandleFunc("/users", adminHandler.CreateUser).Methods("POST")
+	adminRouter.HandleFunc("/users/{id}", adminHandler.UpdateUser).Methods("PUT")
+	adminRouter.HandleFunc("/users/{id}", adminHandler.DeleteUser).Methods("DELETE")
+	adminRouter.HandleFunc("/users/{id}", adminHandler.UpdateUserPassword).Methods("PATCH")
 
 	return adminRouter
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"MathTrainer/internal"
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
@@ -16,7 +17,7 @@ type TeacherService interface {
 	GetClassByTeacherId(ctx context.Context, teacherId int) (int, error)
 	GetClassStudents(ctx context.Context, classId int) ([]model.User, error)
 	GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error)
-	GetEquationTypesByStudentId(ctx context.Context, studetnId int) ([]model.ShortEquationType, error) 
+	GetEquationTypesByStudentId(ctx context.Context, studetnId int) ([]model.ShortEquationType, error)
 
 	CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error)
 	UpdateStudent(ctx context.Context, studentId int, fullName, email string) error
@@ -24,15 +25,15 @@ type TeacherService interface {
 }
 
 type TeacherServiceStruct struct {
-	userRepo    repository.UserRepository
-	attemptRepo repository.EquationAttemptsRepository
+	userRepo         repository.UserRepository
+	attemptRepo      repository.EquationAttemptsRepository
 	equationTypeRepo repository.EquationTypeRepository
 }
 
 func NewTeacherServiceStruct(userRepo repository.UserRepository, attemptRepo repository.EquationAttemptsRepository, equationTypeRepo repository.EquationTypeRepository) *TeacherServiceStruct {
 	return &TeacherServiceStruct{
-		userRepo:    userRepo,
-		attemptRepo: attemptRepo,
+		userRepo:         userRepo,
+		attemptRepo:      attemptRepo,
 		equationTypeRepo: equationTypeRepo,
 	}
 }
@@ -63,7 +64,7 @@ func (s *TeacherServiceStruct) GetClassStudents(ctx context.Context, classId int
 		return nil, errors.New("invalid id")
 	}
 
-	return s.userRepo.GetStudentsByClass(ctx, classId)	
+	return s.userRepo.GetStudentsByClass(ctx, classId)
 }
 
 func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, fullName, email, login string) (*model.UserCredentials, error) {
@@ -97,7 +98,7 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 		Login:        login,
 		FullName:     fullName,
 		PasswordHash: passwordHash,
-		RoleId:       1, // тут убрать эту херню, заменить на что-то адекватное
+		RoleId:       internal.StudentRoleId,
 		Blocked:      false,
 		ClassId:      &classId,
 		CreatedAt:    time.Now(),
@@ -111,7 +112,7 @@ func (s *TeacherServiceStruct) CreateStudent(ctx context.Context, classId int, f
 	return &model.UserCredentials{Login: login, Password: password}, nil
 }
 
-func (s *TeacherServiceStruct) GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error)  {
+func (s *TeacherServiceStruct) GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error) {
 	if studentId <= 0 {
 		return nil, errors.New("bad requst")
 	}
@@ -119,30 +120,31 @@ func (s *TeacherServiceStruct) GetEquationTypesByStudentId(ctx context.Context, 
 	return s.equationTypeRepo.GetEquationTypesByStudentId(ctx, studentId)
 }
 
-// TODO: метод не раюотает)))) исправить 
-func (s *TeacherServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) error { 
+// TODO: метод не раюотает)))) исправить
+// сегодня 13 мая я с чистой совестью нахуй не хочу эттим заниматься, в другой день ученики
+func (s *TeacherServiceStruct) UpdateStudent(ctx context.Context, studentId int, fullName, email string) error {
 	fullName = strings.TrimSpace(fullName)
 	if fullName == "" {
-		return errors.New("bad request")
+		return model.ErrBadRequest
 	}
 
 	email = strings.TrimSpace(email)
 	if email == "" {
-		return errors.New("bad request")
+		return model.ErrBadRequest
 	}
 
 	student := model.User{
 		Email:    email,
 		FullName: fullName,
 	}
-	_, err := s.userRepo.UpdateUser(ctx, student)
+	err := s.userRepo.UpdateUser(ctx, student)
 
 	return err
 }
 
 func (s *TeacherServiceStruct) DeleteStudent(ctx context.Context, id int) error {
 	if id <= 0 {
-		return errors.New("bad request")
+		return model.ErrBadRequest
 	}
 
 	return s.userRepo.DeleteUser(ctx, id)

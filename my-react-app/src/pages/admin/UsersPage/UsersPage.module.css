@@ -1,0 +1,11 @@
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}

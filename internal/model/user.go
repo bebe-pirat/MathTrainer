@@ -15,6 +15,15 @@ type User struct {
 	LastLogin    *time.Time `json:"last_login"`
 }
 
+type CreateAndUpdateUserRequest struct {
+	Id       int    `json:"-"` // ignore
+	Email    string `json:"email"`
+	Login    string `json:"login"`
+	RoleId   int    `json:"role_id"`
+	FullName string `json:"fullname"`
+	ClassId  *int   `json:"class_id"`
+}
+
 type UserCredentials struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
