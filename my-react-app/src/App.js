@@ -17,6 +17,7 @@ import ProfilePage from "./pages/student/ProfilePage/ProfilePage";
 import GamePage from "./pages/GamePage/GamePage";
 import StatsPage from "./pages/student/StatsPage/StatsPage";
 import StudentAttemptsPage from "./pages/teacher/StudentAttemptsPage/StudentAttemptsPage";
+import SectionsPage from "./pages/admin/SectionsPage/SectionsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -75,7 +76,14 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
-
+            <Route
+                path="/admin/sections"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <SectionsPage/>
+                    </ProtectedRoute>
+                }
+            />
             <Route
                 path="/student/dashboard"
                 element={
@@ -156,6 +164,7 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
+            
         </Routes>
     );
 }

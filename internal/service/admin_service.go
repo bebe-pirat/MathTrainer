@@ -4,6 +4,7 @@ import (
 	"MathTrainer/internal/model"
 	"MathTrainer/internal/repository"
 	"context"
+	"database/sql"
 	"errors"
 	"log/slog"
 	"strings"
@@ -20,17 +21,24 @@ type AdminService interface {
 	CreateTeacher(ctx context.Context, fullName, login, email string, classId int) (*model.UserCredentials, error)
 	ChangeBlockingUser(ctx context.Context, userId int, blocked bool) error
 	GetAllUsers(ctx context.Context) ([]model.User, error)
+
+	CreateSection(ctx context.Context, section model.Section) error
+	UpdateSection(ctx context.Context, section model.Section) error
+	DeleteSection(ctx context.Context, sectionId int) error
+	GetSections(ctx context.Context, class int) ([]model.Section, error)
 }
 
 type AdminServiceStruct struct {
-	userRepo   repository.UserRepository
-	schoolRepo repository.SchoolRepository
+	userRepo    repository.UserRepository
+	schoolRepo  repository.SchoolRepository
+	sectionRepo repository.SectionRepository
 }
 
-func NewAdminServiceStruct(userRepo repository.UserRepository, schoolRepo repository.SchoolRepository) *AdminServiceStruct {
+func NewAdminServiceStruct(userRepo repository.UserRepository, schoolRepo repository.SchoolRepository, sectionRepo repository.SectionRepository) *AdminServiceStruct {
 	return &AdminServiceStruct{
-		userRepo:   userRepo,
-		schoolRepo: schoolRepo,
+		userRepo:    userRepo,
+		schoolRepo:  schoolRepo,
+		sectionRepo: sectionRepo,
 	}
 }
 
@@ -119,6 +127,46 @@ func (s *AdminServiceStruct) ChangeBlockingUser(ctx context.Context, userId int,
 
 func (s *AdminServiceStruct) GetAllUsers(ctx context.Context) ([]model.User, error) {
 	return s.userRepo.GetAllUsers(ctx)
+}
+
+func (s *AdminServiceStruct) CreateSection(ctx context.Context, section model.Section) error {
+	section.Name = strings.TrimSpace(section.Name)
+	if section.Name == "" || section.Class < 1 || section.Class > 4 {
+		return model.ErrBadRequest
+	}
+
+	return s.sectionRepo.CreateSection(ctx, section)
+}
+
+func (s *AdminServiceStruct) UpdateSection(ctx context.Context, section model.Section) error {
+	section.Name = strings.TrimSpace(section.Name)
+	if section.Id <= 0 || section.Name == "" || section.Class < 1 || section.Class > 4 || section.Order < 0 {
+		return model.ErrBadRequest
+	}
+
+	err := s.sectionRepo.UpdateSection(ctx, section)
+	if err == sql.ErrNoRows {
+		return model.ErrNotFound
+	}
+
+	return err
+}
+
+func (s *AdminServiceStruct) DeleteSection(ctx context.Context, sectionId int) error {
+	if sectionId <= 0 {
+		return model.ErrBadRequest
+	}
+
+	err := s.sectionRepo.DeleteSection(ctx, sectionId)
+	if err == sql.ErrNoRows {
+		return model.ErrNotFound
+	}
+
+	return err
+}
+
+func (s *AdminServiceStruct) GetSections(ctx context.Context, class int) ([]model.Section, error) {
+	return s.sectionRepo.GetSections(ctx, class)
 }
 
 // func (s *UserServiceStruct) CreateUser(ctx context.Context, e model.User) (int, error) {

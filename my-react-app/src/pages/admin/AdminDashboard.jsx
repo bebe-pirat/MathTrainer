@@ -1,6 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../components/LogoutButton/LogoutButton";
 import sharedStyles from "../../styles/shared.module.css";
+import { ReactComponent as UserIcon } from "../../assets/user-list.svg";
+import { ReactComponent as EquationTypesIcon } from "../../assets/pen.svg"
+import { ReactComponent as SchoolIcon } from "../../assets/building.svg"
+import { ReactComponent as TeacherIcon } from "../../assets/building-user.svg"
+import { ReactComponent as SectionsIcon } from "../../assets/book-open.svg"
+import { ReactComponent as ClassesIcon } from "../../assets/book.svg"
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -22,7 +28,7 @@ function AdminDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/admin/schools")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>🏫</div>
+            <SchoolIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Школы</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Добавление школ
@@ -33,7 +39,7 @@ function AdminDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/admin/teachers")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>👩‍🏫</div>
+            <TeacherIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Учителя</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Управление учителями и их данными
@@ -44,7 +50,7 @@ function AdminDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/admin/classes")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>📚</div>
+            <ClassesIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Классы</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Создание и настройка классов
@@ -55,14 +61,36 @@ function AdminDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/admin/users")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>👤</div>
+            <UserIcon className={sharedStyles.iconBlue} />            
             <div className={sharedStyles.dashboardCardTitle}>Пользователи</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Управление пользователями системы
             </div>
           </div>
-        </div>
 
+          <div
+            className={sharedStyles.dashboardCard}
+            onClick={() => navigate("/admin/sections")}
+          >
+            <SectionsIcon className={sharedStyles.iconBlue}/>
+            <div className={sharedStyles.dashboardCardTitle}>Секции</div>
+            <div className={sharedStyles.dashboardCardDesc}>
+              Управление секциями для примеров школьников
+            </div>
+          </div>
+
+          <div
+            className={sharedStyles.dashboardCard}
+            onClick={() => navigate("/admin/equation-types")}
+          >
+            <EquationTypesIcon className={sharedStyles.iconBlue} />            
+            <div className={sharedStyles.dashboardCardTitle}>Типы примеров и операнды</div>
+            <div className={sharedStyles.dashboardCardDesc}>
+              Управление типами примеров и их операндами
+            </div>
+          </div>
+
+          </div>
         <div className={sharedStyles.dashboardFooter} />
       </div>
     </div>

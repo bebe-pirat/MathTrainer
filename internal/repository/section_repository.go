@@ -5,12 +5,18 @@ import (
 	"MathTrainer/internal/model"
 	"context"
 	"database/sql"
+	"log/slog"
 )
 
 type SectionRepository interface {
 	GetSectionsByClass(ctx context.Context, class int, currentSection int) ([]model.Section, error)
 	GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error)
 	GetFirstStudentSection(ctx context.Context, studentId int) (int, error)
+
+	CreateSection(ctx context.Context, section model.Section) error
+	UpdateSection(ctx context.Context, section model.Section) error
+	DeleteSection(ctx context.Context, sectionId int) error
+	GetSections(ctx context.Context, class int) ([]model.Section, error)
 }
 
 type SectionRepositoryStruct struct {
@@ -110,4 +116,98 @@ func (r *SectionRepositoryStruct) GetFirstStudentSection(ctx context.Context, st
 	}
 
 	return sectionId, nil
+}
+
+func (r *SectionRepositoryStruct) CreateSection(ctx context.Context, section model.Section) error {
+	query := `
+		INSERT INTO sections(name, class, section_order) 
+		VALUES ($1, $2, $3);
+	`
+
+	res, err := r.db.ExecContext(ctx, query, section.Name, section.Class, section.Order)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *SectionRepositoryStruct) UpdateSection(ctx context.Context, section model.Section) error {
+	query := `
+		UPDATE sections SET name = $1, 
+							class = $2, 
+							section_order = $3
+		WHERE id = $4;
+	`
+
+	res, err := r.db.ExecContext(ctx, query, section.Name, section.Class, section.Order, section.Id)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *SectionRepositoryStruct) DeleteSection(ctx context.Context, sectionId int) error {
+	query := `
+		DELETE FROM sections
+		WHERE id = $1;
+	`
+
+	res, err := r.db.ExecContext(ctx, query, sectionId)
+	if err != nil {
+		slog.Error("failed to delete", "error", err)
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		slog.Error("failed to delete", "error", err)
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *SectionRepositoryStruct) GetSections(ctx context.Context, class int) ([]model.Section, error) {
+	query := `
+		SELECT id, name, class, section_order
+		FROM sections
+	`
+	parameters := make([]any, 0)
+	if class >= 1 && class <= 4 {
+		query += `WHERE class = $1;`
+		parameters = append(parameters, class)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, parameters...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sections := make([]model.Section, 0)
+	for rows.Next() {
+		var section model.Section
+
+		err := rows.Scan(&section.Id, &section.Name, &section.Class, &section.Order)
+		if err != nil {
+			return nil, err
+		}
+
+		sections = append(sections, section)
+	}
+
+	if rows.Err() != nil {
+		return nil, err
+	}
+
+	return sections, nil
 }

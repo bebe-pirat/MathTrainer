@@ -13,7 +13,7 @@ type EquationAttemptsRepository interface {
 	CreateAttempt(ctx context.Context, e model.Attempt) error
 	GetStudentAttempts(ctx context.Context, studentId int, equation_type_id int) ([]model.AttemptForTeacher, error)
 
-    // school stats
+	// school stats
 	GetTotalAttemptsBySchoolId(ctx context.Context, schoolId int) (int, error)
 	GetWrongAnswersBySchoolId(ctx context.Context, schoolId int) (int, error)
 	GetClassesAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.ClassShortStats, error)
@@ -296,7 +296,7 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx co
 		SELECT
 			users.id,
 			users.fullname,
-			COALESCE(ROUND(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 2), 0) as accuracy,
+			ROUND(COALESCE(ROUND(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 2), 0)::numeric, 2) as accuracy,
 			COALESCE(count_levels, 0)
 		FROM users	
 		LEFT JOIN attempts ON attempts.student_id = users.id
@@ -337,7 +337,8 @@ func (r *EquationAttemptsRepositoryStruct) GetStudentsShortStatsByClassId(ctx co
 
 func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyByClassId(ctx context.Context, classId int) ([]model.EquationTypeStats, error) {
 	query := `
-		SELECT equation_types.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
+		SELECT equation_types.name, 
+		ROUND(COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)::numeric, 2)
 		FROM equation_types
 		LEFT JOIN attempts ON attempts.equation_type_id = equation_types.id
 		LEFT JOIN users ON users.id = attempts.student_id
@@ -427,7 +428,7 @@ func (r *EquationAttemptsRepositoryStruct) GetExtendedEquationTypeStats(ctx cont
 			total,
 			right_ans,
 			wrong,
-			(right_ans * 100.0 / NULLIF(total, 0)) AS accuracy
+			ROUND((right_ans * 100.0 / NULLIF(total, 0))::numeric, 2) AS accuracy
 		FROM stats;
 	`
 

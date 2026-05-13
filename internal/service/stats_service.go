@@ -5,6 +5,7 @@ import (
 	"MathTrainer/internal/repository"
 	"context"
 	"database/sql"
+	"math"
 )
 
 type StatsService interface {
@@ -98,9 +99,6 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 		return nil, err
 	}
 
-	// TODO: удалить, сделано исключительно для отладки
-	// slog.Info("student short stats", students)
-
 	studentCount := len(students)
 
 	totalCount, err := s.attemptRepo.GetTotalAttemptsByClassId(ctx, classId)
@@ -133,7 +131,7 @@ func (s *StatsServiceStruct) GetClassStats(ctx context.Context, classId int) (*m
 		TotalAttempts:  totalCount,
 		WrongAnswers:   wrongCount,
 		CorrectAnswers: correctCount,
-		Accuracy:       accuracy,
+		Accuracy:       float32(math.Round(float64(accuracy*100))) / 100,
 		EquationTypes:  equationTypes,
 		Students:       students,
 	}, nil
@@ -152,9 +150,6 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 
 	correctCount := totalCount - wrongCount
 	accuracy := float32(correctCount) / float32(totalCount) * 100.0
-
-	// TODO: удали, нужно было для отладки
-	// slog.Info("accuracy info", "accuracy", accuracy, "correct_count", correctCount, "total_count", totalCount, "wrong_count", wrongCount)
 
 	complitedLevels, err := s.progressRepo.GetCountComplitedLevels(ctx, studentId)
 	if err != nil {
@@ -181,9 +176,6 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 		return nil, err
 	}
 
-	// TODO: удали, нужно для отладки
-	// slog.Info("equation_types", "equation type name", equationTypes[0].Type, "accuracy", equationTypes[0].Accuracy)
-
 	weakTopics := make([]string, 0)
 	for _, value := range equationTypes {
 		if value.Accuracy < 50.0 {
@@ -195,7 +187,7 @@ func (s *StatsServiceStruct) GetStudentStats(ctx context.Context, studentId int)
 		TotalAttempts:   totalCount,
 		CorrectAnswers:  correctCount,
 		WrongAnswers:    wrongCount,
-		Accuracy:        accuracy,
+		Accuracy:        float32(math.Round(float64(accuracy*100))) / 100,
 		LevelsCompleted: complitedLevels,
 		StarsTotal:      starsCount,
 		XP:              xp,

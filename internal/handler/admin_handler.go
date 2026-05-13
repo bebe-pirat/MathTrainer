@@ -1,11 +1,15 @@
 package handler
 
 import (
+	"MathTrainer/internal/model"
 	"MathTrainer/internal/service"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type AdminHandler struct {
@@ -192,8 +196,6 @@ func (h *AdminHandler) CreateClass(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	slog.Info("hero")
-
 	if err := json.NewEncoder(w).Encode(classId); err != nil {
 		slog.Error("serializtion failed", "error", err)
 	}
@@ -234,6 +236,151 @@ func (h *AdminHandler) GetClassesBySchoolId(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(classes); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
+
+func (h *AdminHandler) CreateSection(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	type CreateSectionRequest struct {
+		Name         string `json:"name"`
+		Class        int    `json:"class"`
+		SectionOrder int    `json:"section_order"`
+	}
+
+	var req CreateSectionRequest
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.adminService.CreateSection(ctx, model.Section{Name: req.Name, Class: req.Class, Order: req.SectionOrder})
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to create new section", http.StatusInternalServerError)
+		slog.Error("failed to create section", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) UpdateSection(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	if idStr == "" {
+		http.Error(w, "bad request, no id", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	type UpdateSectionRequest struct {
+		Name         string `json:"name"`
+		Class        int    `json:"class"`
+		SectionOrder int    `json:"section_order"`
+	}
+
+	var req UpdateSectionRequest
+
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.adminService.UpdateSection(ctx, model.Section{Id: id, Name: req.Name, Class: req.Class, Order: req.SectionOrder})
+	if errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "failed to find section with id", http.StatusNotFound)
+		slog.Error("failed to find section to update", "id", id, "error", err)
+		return
+	}
+	if errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("bad request", "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to update section", http.StatusInternalServerError)
+		slog.Error("failed to update section", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) DeleteSection(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	if idStr == "" {
+		http.Error(w, "bad request, no id", http.StatusBadRequest)
+		slog.Error("failed to get id to delete section", "URL", r.RequestURI)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		slog.Error("failed to converte id to INT", "id", idStr)
+		return
+	}
+
+	err = h.adminService.DeleteSection(ctx, id)
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "failed to find section with id", http.StatusNotFound)
+		slog.Error("failed to find section to update", "id", id, "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to delete section", http.StatusInternalServerError)
+		slog.Error("failed to delete section", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) GetSections(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	class := 0
+	var err error
+	classStr := r.URL.Query().Get("class")
+	if classStr != "" {
+		class, err = strconv.Atoi(classStr)
+		if err != nil {
+			class = 0
+		}
+	}
+
+	sections, err := h.adminService.GetSections(ctx, class)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		slog.Error("failed to get sections", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(sections); err != nil {
 		slog.Error("serializtion failed", "error", err)
 	}
 }

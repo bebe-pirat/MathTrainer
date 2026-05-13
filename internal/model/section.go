@@ -3,9 +3,10 @@ package model
 type Section struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
-	Order       int    `json:"order"`
-	LevelsCount int    `json:"levels_count"`
-	IsUnlocked  bool   `json:"is_unlocked"`
+	Order       int    `json:"section_order"`
+	Class       int    `json:"class,omitempty"`
+	LevelsCount int    `json:"levels_count,omitempty"`
+	IsUnlocked  bool   `json:"is_unlocked,omitempty"`
 }
 
 type StudentPosition struct {

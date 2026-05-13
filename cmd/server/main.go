@@ -54,8 +54,6 @@ func main() {
 
 	handler.InitCookieStore(secretKey)
 
-	// Инициализируем cookie store с ключом
-
 	// Repo
 	userRepo := repository.NewUserRepositoryStruct(db)
 	sessionRepo := repository.NewSessionRepositoryStruct(db)
@@ -69,7 +67,7 @@ func main() {
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
-	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo)
+	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo, sectionRepo)
 	classService := service.NewClassServiceStruct(classRepo)
 	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo, equationRepo)
@@ -92,7 +90,7 @@ func main() {
 	createEquationRouter(mainRouter, equationHandler)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   []string{"http://localhost:3001"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -142,6 +140,11 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	adminRouter.HandleFunc("/classes", adminHandler.CreateClass).Methods("POST")
 	adminRouter.HandleFunc("/schools", adminHandler.CreateSchool).Methods("POST")
 	adminRouter.HandleFunc("/teachers", adminHandler.CreateTeacher).Methods("POST")
+
+	adminRouter.HandleFunc("/sections", adminHandler.CreateSection).Methods("POST")
+	adminRouter.HandleFunc("/sections/{id}", adminHandler.UpdateSection).Methods("PUT")
+	adminRouter.HandleFunc("/sections/{id}", adminHandler.DeleteSection).Methods("DELETE")
+	adminRouter.HandleFunc("/sections", adminHandler.GetSections).Methods("GET")
 
 	return adminRouter
 }

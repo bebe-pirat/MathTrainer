@@ -12,10 +12,11 @@ type EquationType struct {
 }
 
 type Operand struct {
-	Id           int
-	OperandOrder int
-	MinValue     int
-	MaxValue     int
+	Id             int
+	OperandOrder   int
+	EquationTypeId int
+	MinValue       int
+	MaxValue       int
 }
 
 type EquationTypeWithOperands struct {
@@ -30,4 +31,12 @@ type EquationTypeWithOperands struct {
 type ShortEquationType struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+type EquationTypeRequest struct {
+	Operations  string `json:"operations"`
+	NumOperands int `json:"num_operands"`
+	NoRemainder bool `json:"no_remainder"`
+	MaxResult   int `json:"max_result"`
+	Operands    []Operand `json:"operands"`
 }
