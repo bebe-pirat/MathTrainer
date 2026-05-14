@@ -67,7 +67,7 @@ func main() {
 
 	// Service
 	authService := service.NewAuthServiceStruct(userRepo, sessionRepo)
-	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo, sectionRepo)
+	adminService := service.NewAdminServiceStruct(userRepo, schoolRepo, sectionRepo, equationRepo)
 	classService := service.NewClassServiceStruct(classRepo)
 	statsService := service.NewStatStatsServiceStruct(classRepo, schoolRepo, userRepo, attemptRepo, progressRepo, achievRepo)
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo, equationRepo)
@@ -150,6 +150,12 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	adminRouter.HandleFunc("/users/{id}", adminHandler.UpdateUser).Methods("PUT")
 	adminRouter.HandleFunc("/users/{id}", adminHandler.DeleteUser).Methods("DELETE")
 	adminRouter.HandleFunc("/users/{id}", adminHandler.UpdateUserPassword).Methods("PATCH")
+
+	adminRouter.HandleFunc("/equation-types", adminHandler.CreateEquationType).Methods("POST")
+	adminRouter.HandleFunc("/equation-types/{id}", adminHandler.DeleteEquationType).Methods("DELETE")
+	adminRouter.HandleFunc("/equation-types/{id}", adminHandler.UpdateEquationType).Methods("PUT")
+	adminRouter.HandleFunc("/equation-types", adminHandler.GetEquationTypes).Methods("GET")
+	adminRouter.HandleFunc("/operands", adminHandler.GetOperandsForEquationType).Methods("GET")
 
 	return adminRouter
 }

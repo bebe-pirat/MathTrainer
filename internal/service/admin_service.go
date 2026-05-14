@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"time"
@@ -31,19 +32,27 @@ type AdminService interface {
 	UpdateSection(ctx context.Context, section model.Section) error
 	DeleteSection(ctx context.Context, sectionId int) error
 	GetSections(ctx context.Context, class int) ([]model.Section, error)
+
+	CreateEquationType(ctx context.Context, e model.CreateEquationTypeRequest) error
+	DeleteEquationType(ctx context.Context, equationId int) error
+	UpdateEquationType(ctx context.Context, equationTypeId int, e model.UpdateEquationTypeRequest) error
+	GetEquationTypes(ctx context.Context) ([]model.EquationType, error)
+	GetOperandsForEquationType(ctx context.Context, equationTypeId int) ([]model.OperandResponse, error)
 }
 
 type AdminServiceStruct struct {
-	userRepo    repository.UserRepository
-	schoolRepo  repository.SchoolRepository
-	sectionRepo repository.SectionRepository
+	userRepo         repository.UserRepository
+	schoolRepo       repository.SchoolRepository
+	sectionRepo      repository.SectionRepository
+	equationTypeRepo repository.EquationTypeRepository
 }
 
-func NewAdminServiceStruct(userRepo repository.UserRepository, schoolRepo repository.SchoolRepository, sectionRepo repository.SectionRepository) *AdminServiceStruct {
+func NewAdminServiceStruct(userRepo repository.UserRepository, schoolRepo repository.SchoolRepository, sectionRepo repository.SectionRepository, equationTypeRepo repository.EquationTypeRepository) *AdminServiceStruct {
 	return &AdminServiceStruct{
-		userRepo:    userRepo,
-		schoolRepo:  schoolRepo,
-		sectionRepo: sectionRepo,
+		userRepo:         userRepo,
+		schoolRepo:       schoolRepo,
+		sectionRepo:      sectionRepo,
+		equationTypeRepo: equationTypeRepo,
 	}
 }
 
@@ -310,4 +319,140 @@ func (s *AdminServiceStruct) UpdatePassword(ctx context.Context, userId int) (*m
 	}
 
 	return &model.UserCredentials{Login: login, Password: password}, nil
+}
+
+func (s *AdminServiceStruct) CreateEquationType(ctx context.Context, e model.CreateEquationTypeRequest) error {
+	if e.Class < 1 || e.Class > 4 {
+		return model.BadRequest(fmt.Sprintf("class is out of borders from 1 to 4, class: %d", e.Class))
+	}
+
+	e.Name = strings.TrimSpace(e.Name)
+	if e.Name == "" {
+		return model.BadRequest("name is empty")
+	}
+
+	e.Description = strings.TrimSpace(e.Description)
+	if e.Name == "" {
+		return model.BadRequest("description is empty")
+	}
+
+	e.Operations = strings.TrimSpace(e.Operations)
+	if e.Operations == "" {
+		return model.BadRequest("operations is empty ")
+	}
+
+	if len(e.Operands) != e.NumOperands {
+		return model.BadRequest("numOperands is not the same as len(operands)")
+	}
+
+	err := s.equationTypeRepo.CreateFullEquationType(ctx, model.EquationType{
+		Class:       e.Class,
+		Name:        e.Name,
+		Description: e.Description,
+		Operations:  e.Operations,
+		NumOperands: e.NumOperands,
+		NoRemainder: e.NoRemainder,
+		MaxResult:   e.MaxResult,
+	}, createRequestOperandsToOperands(e.Operands))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createRequestOperandsToOperands(op []model.CreateOperandRequest) []model.Operand {
+	result := make([]model.Operand, len(op))
+
+	for i, v := range op {
+		result[i] = model.Operand{
+			MaxValue:     v.MaxValue,
+			MinValue:     v.MinValue,
+			OperandOrder: v.OperandOrder,
+		}
+	}
+
+	return result
+}
+
+func (s *AdminServiceStruct) DeleteEquationType(ctx context.Context, equationId int) error {
+	if equationId <= 0 {
+		return model.BadRequest("invalid id")
+	}
+
+	return s.equationTypeRepo.DeleteFullEquationType(ctx, equationId)
+}
+
+func (s *AdminServiceStruct) UpdateEquationType(ctx context.Context, equationTypeId int, e model.UpdateEquationTypeRequest) error {
+	if equationTypeId <= 0 {
+		return model.BadRequest("invalid id")
+	}
+
+	if e.Class < 1 || e.Class > 4 {
+		return model.BadRequest(fmt.Sprintf("class is out of borders from 1 to 4, class: %d", e.Class))
+	}
+
+	e.Name = strings.TrimSpace(e.Name)
+	if e.Name == "" {
+		return model.BadRequest("name is empty")
+	}
+
+	e.Description = strings.TrimSpace(e.Description)
+	if e.Name == "" {
+		return model.BadRequest("description is empty")
+	}
+
+	e.Operations = strings.TrimSpace(e.Operations)
+	if e.Operations == "" {
+		return model.BadRequest("operations is empty ")
+	}
+
+	if len(e.Operands) != e.NumOperands {
+		return model.BadRequest("numOperands is not the same as len(operands)")
+	}
+
+	err := s.equationTypeRepo.UpdateFullEquationType(ctx, model.EquationType{
+		Id:          equationTypeId,
+		Class:       e.Class,
+		Name:        e.Name,
+		Description: e.Description,
+		Operations:  e.Operations,
+		NumOperands: e.NumOperands,
+		NoRemainder: e.NoRemainder,
+		MaxResult:   e.MaxResult,
+	}, updateRequestOperandsToOperands(e.Operands), equationTypeId)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return model.NotFound(fmt.Sprintf("not found row with id: %d, error: %w", equationTypeId, err))
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateRequestOperandsToOperands(ops []model.UpdateOperandRequest) []model.Operand {
+	result := make([]model.Operand, len(ops))
+	for i, v := range ops {
+		result[i] = model.Operand{
+			Id:           v.Id,
+			MaxValue:     v.MaxValue,
+			MinValue:     v.MinValue,
+			OperandOrder: v.OperandOrder,
+		}
+	}
+
+	return result
+}
+
+func (s *AdminServiceStruct) GetEquationTypes(ctx context.Context) ([]model.EquationType, error) {
+	return s.equationTypeRepo.GetEquationTypes(ctx)
+}
+
+func (s *AdminServiceStruct) GetOperandsForEquationType(ctx context.Context, equationTypeId int) ([]model.OperandResponse, error) {
+	if equationTypeId <= 0 {
+		return nil, model.BadRequest("invalid id")
+	}
+
+	return s.equationTypeRepo.GetOperandsForEquationTypeId(ctx, equationTypeId)
 }

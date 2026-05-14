@@ -6,7 +6,8 @@ import { ReactComponent as EquationTypesIcon } from "../../assets/pen.svg"
 import { ReactComponent as SchoolIcon } from "../../assets/building.svg"
 import { ReactComponent as TeacherIcon } from "../../assets/building-user.svg"
 import { ReactComponent as SectionsIcon } from "../../assets/book-open.svg"
-import { ReactComponent as ClassesIcon } from "../../assets/book.svg"
+import { ReactComponent as ClassesIcon } from "../../assets/group-arrows-rotate.svg"
+import { ReactComponent as SectionEquationTypeIcon } from "../../assets/book.svg"
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -76,6 +77,17 @@ function AdminDashboard() {
             <div className={sharedStyles.dashboardCardTitle}>Секции</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Управление секциями для примеров школьников
+            </div>
+          </div>
+
+          <div
+            className={sharedStyles.dashboardCard}
+            onClick={() => navigate("/admin/sections")}
+          >
+            <SectionEquationTypeIcon className={sharedStyles.iconBlue}/>
+            <div className={sharedStyles.dashboardCardTitle}>Секции</div>
+            <div className={sharedStyles.dashboardCardDesc}>
+              Управление содержимым секций 
             </div>
           </div>
 

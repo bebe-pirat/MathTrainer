@@ -12,14 +12,22 @@ type EquationTypeRepository interface {
 	GetOperandsByEquationType(ctx context.Context, equationTypeId int) ([]model.Operand, error)
 	GetEquationTypesByStudentId(ctx context.Context, studentId int) ([]model.ShortEquationType, error)
 
-	CreateEquationType(ctx context.Context, equationType model.EquationType) error
-	UpdateEquationType(ctx context.Context, equationType model.EquationType) error
-	DeleteEquationType(ctx context.Context, equationTypeId int) error
+	CreateEquationType(ctx context.Context, tx *sql.Tx, equationType model.EquationType) (int, error)
+	UpdateEquationType(ctx context.Context, tx *sql.Tx, equationType model.EquationType) error
+	DeleteEquationType(ctx context.Context, tx *sql.Tx, equationTypeId int) error
 	GetEquationTypes(ctx context.Context) ([]model.EquationType, error)
 
-	JoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error
-	CreateOperandForEquationType(ctx context.Context, operand model.Operand) error
-	UpdateOperandForEquationType(ctx context.Context, operand model.Operand) error
+	JoinEquationTypeToSection(ctx context.Context, tx *sql.Tx, equationTypeId, sectionId int) error
+	DeleteEquationTypeFromSection(ctx context.Context, tx *sql.Tx, equationTypeId int) error
+
+	CreateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error
+	UpdateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error
+	DeleteOperandsForEquationType(ctx context.Context, tx *sql.Tx, equationTypeId int) error
+	GetOperandsForEquationTypeId(ctx context.Context, equationTypeId int) ([]model.OperandResponse, error)
+
+	CreateFullEquationType(ctx context.Context, equationType model.EquationType, operands []model.Operand) error
+	DeleteFullEquationType(ctx context.Context, equationTypeId int) error
+	UpdateFullEquationType(ctx context.Context, equationType model.EquationType, operands []model.Operand, equationTypeId int) error
 }
 
 type EquationTypeRepositoryStruct struct {
@@ -148,25 +156,23 @@ func (r *EquationTypeRepositoryStruct) GetEquationTypesByStudentId(ctx context.C
 	return types, nil
 }
 
-func (r *EquationTypeRepositoryStruct) CreateEquationType(ctx context.Context, equationType model.EquationType) error {
+func (r *EquationTypeRepositoryStruct) CreateEquationType(ctx context.Context, tx *sql.Tx, equationType model.EquationType) (int, error) {
 	query := `
 		INSERT INTO equation_types (class, name, description, operations, num_operands, no_remainder, max_result)
-		VALUES ($1, $2, $3, $4, $5, $6, $7);
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id;
 	`
 
-	res, err := r.db.ExecContext(ctx, query, equationType.Class, equationType.Name, equationType.Description, equationType.Operations, equationType.NumOperands, equationType.NoRemainder, equationType.MaxResult)
+	var id int
+	err := tx.QueryRowContext(ctx, query, equationType.Class, equationType.Name, equationType.Description, equationType.Operations, equationType.NumOperands, equationType.NoRemainder, equationType.MaxResult).Scan(&id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
-		return sql.ErrNoRows
-	}
-
-	return nil
+	return id, nil
 }
 
-func (r *EquationTypeRepositoryStruct) UpdateEquationType(ctx context.Context, equationType model.EquationType) error {
+func (r *EquationTypeRepositoryStruct) UpdateEquationType(ctx context.Context, tx *sql.Tx, equationType model.EquationType) error {
 	query := `
 		UPDATE equation_types SET class = $1, 
 									name = $2, 
@@ -178,25 +184,29 @@ func (r *EquationTypeRepositoryStruct) UpdateEquationType(ctx context.Context, e
 		WHERE id = $8;
 	`
 
-	res, err := r.db.ExecContext(ctx, query, equationType.Class, equationType.Name, equationType.Description, equationType.Operations, equationType.NumOperands, equationType.NoRemainder, equationType.MaxResult, equationType.Id)
+	res, err := tx.ExecContext(ctx, query, equationType.Class, equationType.Name, equationType.Description, equationType.Operations, equationType.NumOperands, equationType.NoRemainder, equationType.MaxResult, equationType.Id)
 	if err != nil {
 		return err
 	}
 
-	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
 		return sql.ErrNoRows
 	}
 
 	return nil
 }
 
-func (r *EquationTypeRepositoryStruct) DeleteEquationType(ctx context.Context, equationTypeId int) error {
+func (r *EquationTypeRepositoryStruct) DeleteEquationType(ctx context.Context, tx *sql.Tx, equationTypeId int) error {
 	query := `
 		DELETE FROM	equation_types 
 		WHERE id = $1;
 	`
 
-	res, err := r.db.ExecContext(ctx, query, equationTypeId)
+	res, err := tx.ExecContext(ctx, query, equationTypeId)
 	if err != nil {
 		return err
 	}
@@ -210,8 +220,8 @@ func (r *EquationTypeRepositoryStruct) DeleteEquationType(ctx context.Context, e
 
 func (r *EquationTypeRepositoryStruct) GetEquationTypes(ctx context.Context) ([]model.EquationType, error) {
 	query := `
-		SELECT id, class, name, description, operations, num_operands, no_remainder, max_result;
-		FROM equation_types
+		SELECT equation_types.id, equation_types.class, equation_types.name, description, operations, num_operands, no_remainder, max_result
+		FROM equation_types;
 	`
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -249,12 +259,12 @@ func (r *EquationTypeRepositoryStruct) GetEquationTypes(ctx context.Context) ([]
 	return types, nil
 }
 
-func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error {
+func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Context, tx *sql.Tx, equationTypeId, sectionId int) error {
 	query := `
 		INSERT INTO section_equation_types(section_id, eqaution_type_id) 
 		VALUES ($1, $2);
 	`
-	res, err := r.db.ExecContext(ctx, query, sectionId, equationTypeId)
+	res, err := tx.ExecContext(ctx, query, sectionId, equationTypeId)
 	if err != nil {
 		return err
 	}
@@ -266,12 +276,29 @@ func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Con
 	return nil
 }
 
-func (r *EquationTypeRepositoryStruct) CreateOperandForEquationType(ctx context.Context, operand model.Operand) error {
+func (r *EquationTypeRepositoryStruct) DeleteEquationTypeFromSection(ctx context.Context, tx *sql.Tx, equationTypeId int) error {
+	query := `
+		DELETE FROM section_equation_types
+		WHERE eqaution_type_id = $2;
+	`
+	res, err := tx.ExecContext(ctx, query, equationTypeId)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) CreateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error {
 	query := `
 		INSERT INTO operands(equation_type_id, operand_order, min_value, max_value) 
 		VALUES ($1, $2, $3, $4);
 	`
-	res, err := r.db.ExecContext(ctx, query, operand.EquationTypeId, operand.OperandOrder, operand.MinValue, operand.MaxValue)
+	res, err := tx.ExecContext(ctx, query, operand.EquationTypeId, operand.OperandOrder, operand.MinValue, operand.MaxValue)
 	if err != nil {
 		return err
 	}
@@ -282,18 +309,171 @@ func (r *EquationTypeRepositoryStruct) CreateOperandForEquationType(ctx context.
 	return nil
 }
 
-func (r *EquationTypeRepositoryStruct) UpdateOperandForEquationType(ctx context.Context, operand model.Operand) error {
+func (r *EquationTypeRepositoryStruct) UpdateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error {
 	query := `
-		UPDATE operands SET operand_order = $1, min_value = $4, 
+		UPDATE operands SET operand_order = $1, min_value = $2, 
 							max_value = $3
 		WHERE id = $4; 
 	`
-	res, err := r.db.ExecContext(ctx, query, operand.OperandOrder, operand.MinValue, operand.MaxValue, operand.Id)
+	res, err := tx.ExecContext(ctx, query, operand.OperandOrder, operand.MinValue, operand.MaxValue, operand.Id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return nil
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) DeleteOperandsForEquationType(ctx context.Context, tx *sql.Tx, equationTypeId int) error {
+	query := `
+		DELETE FROM operands 
+		WHERE equation_type_id = $1;
+	`
+
+	res, err := tx.ExecContext(ctx, query, equationTypeId)
 	if err != nil {
 		return err
 	}
 	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
 		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) GetOperandsForEquationTypeId(ctx context.Context, equationTypeId int) ([]model.OperandResponse, error) {
+	query := `
+		SELECT id, operand_order, min_value, max_value
+		FROM operands
+		WHERE equation_type_id = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, equationTypeId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var types []model.OperandResponse
+	for rows.Next() {
+		var eqType model.OperandResponse
+
+		err := rows.Scan(
+			&eqType.Id,
+			&eqType.OperandOrder,
+			&eqType.MinValue,
+			&eqType.MaxValue,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("types get error: %w", err)
+		}
+
+		types = append(types, eqType)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("types get error: %w", err)
+	}
+
+	return types, nil
+}
+
+func (r *EquationTypeRepositoryStruct) CreateFullEquationType(ctx context.Context, equationType model.EquationType, operands []model.Operand) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	equationTypeId, err := r.CreateEquationType(ctx, tx, equationType)
+	if err != nil {
+		return fmt.Errorf("create equation type: %w", err)
+	}
+
+	for _, operand := range operands {
+		operand.EquationTypeId = equationTypeId
+		if err := r.CreateOperandForEquationType(ctx, tx, operand); err != nil {
+			return fmt.Errorf("create operand (order %d): %w", operand.OperandOrder, err)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) DeleteFullEquationType(ctx context.Context, equationTypeId int) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	err = r.DeleteOperandsForEquationType(ctx, tx, equationTypeId)
+	if err != nil {
+		return fmt.Errorf("delete operands: %w", err)
+	}
+
+	if err := r.DeleteEquationTypeFromSection(ctx, tx, equationTypeId); err != nil {
+		return fmt.Errorf("delete equation type from section: %w", err)
+	}
+
+	if err := r.DeleteEquationType(ctx, tx, equationTypeId); err != nil {
+		return fmt.Errorf("delete equation type: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) UpdateFullEquationType(ctx context.Context, equationType model.EquationType, operands []model.Operand, equationTypeId int) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	err = r.UpdateEquationType(ctx, tx, equationType)
+	if err != nil {
+		return fmt.Errorf("update equation type: %w", err)
+	}
+
+	for _, operand := range operands {
+		operand.EquationTypeId = equationTypeId
+		if err := r.UpdateOperandForEquationType(ctx, tx, operand); err != nil {
+			return fmt.Errorf("update operand (order %d, id: %d): %w", operand.OperandOrder, operand.Id, err)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit tx: %w", err)
 	}
 
 	return nil

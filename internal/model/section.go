@@ -18,3 +18,8 @@ type LevelsMap struct {
 	Sections []Section       `json:"sections"`
 	Position StudentPosition `json:"student_position"`
 }
+
+type ShortSection struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}

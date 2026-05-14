@@ -395,7 +395,6 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		slog.Error("invalid input to create user", "error", err, "req", req)
 		return
 	}
-	slog.Error("usyy ass bithc")
 
 	creds, err := h.adminService.CreateUser(ctx, req)
 	if err != nil && errors.Is(err, model.ErrBadRequest) {
@@ -534,6 +533,169 @@ func (h *AdminHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(creds); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
+
+func (h *AdminHandler) CreateEquationType(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req model.CreateEquationTypeRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		slog.Error("invalid input to create equation type", "error", err, "req", req)
+		return
+	}
+
+	err = h.adminService.CreateEquationType(ctx, req)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to create equation type", "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to create new equation type", http.StatusInternalServerError)
+		slog.Error("failed to create equation type", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) UpdateEquationType(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	idStr := mux.Vars(r)["id"]
+	if idStr == "" {
+		http.Error(w, "no id", http.StatusBadRequest)
+		slog.Error("no id")
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		slog.Error("failed to convert id into int update equationtype", "error", err, "idStr", idStr)
+		return
+	}
+
+	var req model.UpdateEquationTypeRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "invalid body", http.StatusBadRequest)
+		slog.Error("invalid input to update equation type", "error", err, "req", req)
+		return
+	}
+
+	err = h.adminService.UpdateEquationType(ctx, id, req)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to update equation type", "error", err)
+		return
+	}
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "not found", http.StatusBadRequest)
+		slog.Error("not found equation type for update", "error", err, "id", id)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to update new equation type", http.StatusInternalServerError)
+		slog.Error("failed to update equation type", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) DeleteEquationType(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	idStr := mux.Vars(r)["id"]
+	if idStr == "" {
+		http.Error(w, "no id", http.StatusBadRequest)
+		slog.Error("no id")
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		slog.Error("failed to convert id into int update equationtype", "error", err, "idStr", idStr)
+		return
+	}
+
+	err = h.adminService.DeleteEquationType(ctx, id)
+	if err != nil && errors.Is(err, model.ErrBadRequest) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("invalid input to update equation type", "error", err)
+		return
+	}
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "not found", http.StatusBadRequest)
+		slog.Error("not found equation type for update", "error", err, "id", id)
+		return
+	}
+	if err != nil {
+		http.Error(w, "failed to update new equation type", http.StatusInternalServerError)
+		slog.Error("failed to update equation type", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) GetEquationTypes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	types, err := h.adminService.GetEquationTypes(ctx)
+
+	if err != nil {
+		http.Error(w, "bad request", http.StatusInternalServerError)
+		slog.Error("failed to get equation types", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(types); err != nil {
+		slog.Error("serializtion failed", "error", err)
+	}
+}
+
+func (h *AdminHandler) GetOperandsForEquationType(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	equationTypeIdStr := r.URL.Query().Get("equation_type_id")
+	if equationTypeIdStr == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	equationTypeId, err := strconv.Atoi(equationTypeIdStr)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	ops, err := h.adminService.GetOperandsForEquationType(ctx, equationTypeId)
+	if err != nil && errors.Is(err, model.ErrNotFound) {
+		http.Error(w, "not found", http.StatusNotFound)
+		slog.Error("operands for this equationTypId is not found", "id", equationTypeId, "error", err)
+		return
+	}
+	if err != nil {
+		http.Error(w, "bad request", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(ops); err != nil {
 		slog.Error("serializtion failed", "error", err)
 	}
 }

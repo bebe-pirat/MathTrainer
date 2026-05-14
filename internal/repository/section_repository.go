@@ -12,6 +12,7 @@ type SectionRepository interface {
 	GetSectionsByClass(ctx context.Context, class int, currentSection int) ([]model.Section, error)
 	GetStudentPosition(ctx context.Context, studentId int) (*model.StudentPosition, error)
 	GetFirstStudentSection(ctx context.Context, studentId int) (int, error)
+	GetSectionsNameByClass(ctx context.Context, class int) ([]model.ShortSection, error)
 
 	CreateSection(ctx context.Context, section model.Section) error
 	UpdateSection(ctx context.Context, section model.Section) error
@@ -116,6 +117,38 @@ func (r *SectionRepositoryStruct) GetFirstStudentSection(ctx context.Context, st
 	}
 
 	return sectionId, nil
+}
+
+func (r *SectionRepositoryStruct) GetSectionsNameByClass(ctx context.Context, class int) ([]model.ShortSection, error) {
+	query := `
+		SELECT id, name
+		FROM sections
+		WHERE class = $1;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, class)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sections := make([]model.ShortSection, 0)
+	for rows.Next() {
+		var section model.ShortSection
+
+		err := rows.Scan(&section.Id, &section.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		sections = append(sections, section)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return sections, nil
 }
 
 func (r *SectionRepositoryStruct) CreateSection(ctx context.Context, section model.Section) error {
