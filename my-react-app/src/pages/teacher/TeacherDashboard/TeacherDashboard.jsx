@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 import sharedStyles from "../../../styles/shared.module.css";
+import { ReactComponent as ChartIcon } from "../../../assets/chart-column.svg"
+import { ReactComponent as ClassIcon } from "../../../assets/user-list.svg"
 
 function TeacherDashboard() {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ function TeacherDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/teacher/class-statistics")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>📊</div>
+            <ChartIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Статистика класса</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Общая успеваемость, прогресс по темам
@@ -33,7 +35,7 @@ function TeacherDashboard() {
             className={sharedStyles.dashboardCard}
             onClick={() => navigate("/teacher/students")}
           >
-            <div className={sharedStyles.dashboardCardIcon}>👥</div>
+            <ClassIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Список учеников</div>
             <div className={sharedStyles.dashboardCardDesc}>
               Просмотр и управление учениками
