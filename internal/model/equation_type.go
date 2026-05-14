@@ -82,3 +82,11 @@ type OperandResponse struct {
 	MinValue     int `json:"min_value"`
 	MaxValue     int `json:"max_value"`
 }
+
+type SectionAndEquationType struct {
+	SectionId        int    `json:"section_id"`
+	SectionName      string `json:"section_name"`
+	EquationTypeId   int    `json:"equation_type_id"`
+	EquationTypeName string `json:"equation_type_name"`
+	Class            int    `json:"class"`
+}

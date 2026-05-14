@@ -82,12 +82,12 @@ function AdminDashboard() {
 
           <div
             className={sharedStyles.dashboardCard}
-            onClick={() => navigate("/admin/sections")}
+            onClick={() => navigate("/admin/sections-equation-types")}
           >
             <SectionEquationTypeIcon className={sharedStyles.iconBlue}/>
-            <div className={sharedStyles.dashboardCardTitle}>Секции</div>
+            <div className={sharedStyles.dashboardCardTitle}>Секции и типы примеров</div>
             <div className={sharedStyles.dashboardCardDesc}>
-              Управление содержимым секций 
+              Управление содержимым секций  
             </div>
           </div>
 

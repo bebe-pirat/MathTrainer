@@ -699,3 +699,67 @@ func (h *AdminHandler) GetOperandsForEquationType(w http.ResponseWriter, r *http
 		slog.Error("serializtion failed", "error", err)
 	}
 }
+
+func (h *AdminHandler) JoinEquationTypeAndSection(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		EquationTypeID int `json:"equation_type_id"`
+		SectionID      int `json:"section_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	err := h.adminService.JoinEquationTypeAndSection(ctx, req.EquationTypeID, req.SectionID)
+	if err != nil {
+		http.Error(w, "failed to join equationType with section", http.StatusInternalServerError)
+		slog.Error("failed to join equationType with section", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) UnJoinEquationTypeAndSection(w http.ResponseWriter, r *http.Request) {
+	eqID, err := strconv.Atoi(r.URL.Query().Get("equation_type_id"))
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	secID, err := strconv.Atoi(r.URL.Query().Get("section_id"))
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	err = h.adminService.UnJoinEquationTypeAndSection(ctx, eqID, secID)
+	if err != nil {
+		http.Error(w, "failed to unjoin equationType with section", http.StatusInternalServerError)
+		slog.Error("failed to unjoin equationType with section", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *AdminHandler) GetSectionsAndEquationTypes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	secAndeqs, err := h.adminService.GetSectionsAndEquationTypes(ctx)
+	if err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		slog.Error("failed to get sections and eqatio n types", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if writer := json.NewEncoder(w); writer.Encode(secAndeqs) != nil {
+		slog.Error("serialization failed", "error", err)
+		return
+	}
+}

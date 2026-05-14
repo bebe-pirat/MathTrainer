@@ -17,8 +17,10 @@ type EquationTypeRepository interface {
 	DeleteEquationType(ctx context.Context, tx *sql.Tx, equationTypeId int) error
 	GetEquationTypes(ctx context.Context) ([]model.EquationType, error)
 
-	JoinEquationTypeToSection(ctx context.Context, tx *sql.Tx, equationTypeId, sectionId int) error
+	JoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error
+	UnJoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error
 	DeleteEquationTypeFromSection(ctx context.Context, tx *sql.Tx, equationTypeId int) error
+	GetSectionsAndEquationTypes(ctx context.Context) ([]model.SectionAndEquationType, error)
 
 	CreateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error
 	UpdateOperandForEquationType(ctx context.Context, tx *sql.Tx, operand model.Operand) error
@@ -259,12 +261,29 @@ func (r *EquationTypeRepositoryStruct) GetEquationTypes(ctx context.Context) ([]
 	return types, nil
 }
 
-func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Context, tx *sql.Tx, equationTypeId, sectionId int) error {
+func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error {
 	query := `
 		INSERT INTO section_equation_types(section_id, eqaution_type_id) 
 		VALUES ($1, $2);
 	`
-	res, err := tx.ExecContext(ctx, query, sectionId, equationTypeId)
+	res, err := r.db.ExecContext(ctx, query, sectionId, equationTypeId)
+	if err != nil {
+		return err
+	}
+
+	if rows, err := res.RowsAffected(); err != nil || rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) UnJoinEquationTypeToSection(ctx context.Context, equationTypeId, sectionId int) error {
+	query := `
+		DELETE FROM section_equation_types
+		WHERE section_id = $1 AND eqaution_type_id = $2;
+	`
+	res, err := r.db.ExecContext(ctx, query, sectionId, equationTypeId)
 	if err != nil {
 		return err
 	}
@@ -279,7 +298,7 @@ func (r *EquationTypeRepositoryStruct) JoinEquationTypeToSection(ctx context.Con
 func (r *EquationTypeRepositoryStruct) DeleteEquationTypeFromSection(ctx context.Context, tx *sql.Tx, equationTypeId int) error {
 	query := `
 		DELETE FROM section_equation_types
-		WHERE eqaution_type_id = $2;
+		WHERE eqaution_type_id = $1;
 	`
 	res, err := tx.ExecContext(ctx, query, equationTypeId)
 	if err != nil {
@@ -477,4 +496,43 @@ func (r *EquationTypeRepositoryStruct) UpdateFullEquationType(ctx context.Contex
 	}
 
 	return nil
+}
+
+func (r *EquationTypeRepositoryStruct) GetSectionsAndEquationTypes(ctx context.Context) ([]model.SectionAndEquationType, error) {
+	query := `
+		SELECT section_id, sections.name, eqaution_type_id, equation_types.name, sections.class
+		FROM sections 
+		JOIN section_equation_types ON sections.id = section_equation_types.section_id
+		JOIN equation_types ON equation_types.id = section_equation_types.eqaution_type_id;
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	secAndEqs := make([]model.SectionAndEquationType, 0)
+	for rows.Next() {
+		var secAndEq model.SectionAndEquationType
+
+		err := rows.Scan(
+			&secAndEq.SectionId,
+			&secAndEq.SectionName,
+			&secAndEq.EquationTypeId,
+			&secAndEq.EquationTypeName,
+			&secAndEq.Class,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		secAndEqs = append(secAndEqs, secAndEq)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return secAndEqs, nil
 }

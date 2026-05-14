@@ -19,6 +19,7 @@ import StatsPage from "./pages/student/StatsPage/StatsPage";
 import StudentAttemptsPage from "./pages/teacher/StudentAttemptsPage/StudentAttemptsPage";
 import SectionsPage from "./pages/admin/SectionsPage/SectionsPage";
 import EquationTypesPage from "./pages/admin/EquationTypesPage/EquationTypesPage";
+import SectionsEquationTypesPage from "./pages/admin/SectionsEquationTypesPage/SectionsEquationTypesPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -90,6 +91,14 @@ function AppRoutes() {
                 element={
                     <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
                         <EquationTypesPage/>
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/admin/sections-equation-types"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                        <SectionsEquationTypesPage/>
                     </ProtectedRoute>
                 }
             />

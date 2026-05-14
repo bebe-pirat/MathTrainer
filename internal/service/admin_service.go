@@ -38,6 +38,10 @@ type AdminService interface {
 	UpdateEquationType(ctx context.Context, equationTypeId int, e model.UpdateEquationTypeRequest) error
 	GetEquationTypes(ctx context.Context) ([]model.EquationType, error)
 	GetOperandsForEquationType(ctx context.Context, equationTypeId int) ([]model.OperandResponse, error)
+
+	JoinEquationTypeAndSection(ctx context.Context, equationTypeId, sectionId int) error
+	UnJoinEquationTypeAndSection(ctx context.Context, equationTypeId, sectionId int) error
+	GetSectionsAndEquationTypes(ctx context.Context) ([]model.SectionAndEquationType, error)
 }
 
 type AdminServiceStruct struct {
@@ -455,4 +459,24 @@ func (s *AdminServiceStruct) GetOperandsForEquationType(ctx context.Context, equ
 	}
 
 	return s.equationTypeRepo.GetOperandsForEquationTypeId(ctx, equationTypeId)
+}
+
+func (s *AdminServiceStruct) JoinEquationTypeAndSection(ctx context.Context, equationTypeId, sectionId int) error {
+	if equationTypeId <= 0 || sectionId <= 0 {
+		return model.BadRequest("invalid id")
+	}
+
+	return s.equationTypeRepo.JoinEquationTypeToSection(ctx, equationTypeId, sectionId)
+}
+
+func (s *AdminServiceStruct) UnJoinEquationTypeAndSection(ctx context.Context, equationTypeId, sectionId int) error {
+	if equationTypeId <= 0 || sectionId <= 0 {
+		return model.BadRequest("invalid id")
+	}
+
+	return s.equationTypeRepo.UnJoinEquationTypeToSection(ctx, equationTypeId, sectionId)
+}
+
+func (s *AdminServiceStruct) GetSectionsAndEquationTypes(ctx context.Context) ([]model.SectionAndEquationType, error) {
+	return s.equationTypeRepo.GetSectionsAndEquationTypes(ctx)
 }

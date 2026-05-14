@@ -157,6 +157,10 @@ func createAdminRouter(router *mux.Router, adminHandler *handler.AdminHandler) *
 	adminRouter.HandleFunc("/equation-types", adminHandler.GetEquationTypes).Methods("GET")
 	adminRouter.HandleFunc("/operands", adminHandler.GetOperandsForEquationType).Methods("GET")
 
+	adminRouter.HandleFunc("/sections-equation-types", adminHandler.GetSectionsAndEquationTypes).Methods("GET")
+	adminRouter.HandleFunc("/sections-equation-types", adminHandler.JoinEquationTypeAndSection).Methods("POST")
+	adminRouter.HandleFunc("/sections-equation-types", adminHandler.UnJoinEquationTypeAndSection).Methods("DELETE")
+
 	return adminRouter
 }
 
