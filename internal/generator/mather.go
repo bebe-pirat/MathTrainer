@@ -143,13 +143,13 @@ func (m *Mather) calculateOperation(a, b int, op string) (int, error) {
 		return a + b, nil
 
 	case internal.SubstractionSybmol:
-		if a-b <= 0 {
+		if a-b < 0 {
 			return 0, &CalculationError{"Under zero"}
 		}
 		return a - b, nil
 
 	case internal.MultiplicationSymbol:
-		if a*b <= 0 {
+		if a*b < 0 {
 			return 0, &CalculationError{"Under zero"}
 		}
 		if a*b > m.maxResult {

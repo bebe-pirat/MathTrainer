@@ -3,7 +3,6 @@ package generator
 import (
 	"MathTrainer/internal"
 	"MathTrainer/internal/model"
-	"log/slog"
 	"math/rand/v2"
 	"strconv"
 )
@@ -26,9 +25,11 @@ func GenerateEquation(equationType model.EquationTypeWithOperands) (model.Equati
 
 			if i < cap(ops) {
 				ops[i] = string(runes[rand.IntN(len(runes))])
-				if ops[i] == "/" {
+
+				switch ops[i] {
+				case "/":
 					ops[i] = internal.DivisionSimbol
-				} else if ops[i] == "*" {
+				case "*":
 					ops[i] = internal.MultiplicationSymbol
 				}
 
@@ -39,7 +40,6 @@ func GenerateEquation(equationType model.EquationTypeWithOperands) (model.Equati
 
 		eqStr += "= ?"
 
-		slog.Info("Generating equation: %s", eqStr)
 		m := NewMather(expr, equationType.MaxResult)
 		correctAnswer, err = m.Calculate()
 		if err == nil {
