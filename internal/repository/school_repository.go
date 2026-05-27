@@ -12,6 +12,8 @@ type SchoolRepository interface {
 	DeleteSchool(ctx context.Context, id int) error
 	GetAllSchools(ctx context.Context) ([]model.School, error)
 	GetSchoolById(ctx context.Context, id int) (*model.School, error)
+
+	GetSchoolIdByDirectorId(ctx context.Context, directorId int) (int, error)
 }
 
 type SchoolRepositoryStruct struct {
@@ -120,4 +122,20 @@ func (r *SchoolRepositoryStruct) GetAllSchools(ctx context.Context) ([]model.Sch
 	}
 
 	return schools, nil
+}
+
+func (r *SchoolRepositoryStruct) GetSchoolIdByDirectorId(ctx context.Context, directorId int) (int, error) {
+	query := `
+		SELECT schools.id
+		FROM schools 
+		WHERE director_id = $1;
+	`
+
+	var id int
+	err := r.db.QueryRowContext(ctx, query, directorId).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }

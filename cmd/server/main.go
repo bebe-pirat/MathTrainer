@@ -73,6 +73,7 @@ func main() {
 	teacherService := service.NewTeacherServiceStruct(userRepo, attemptRepo, equationRepo)
 	studentService := service.NewStudentServiceStruct(userRepo, achievRepo, sectionRepo)
 	gameService := service.NewGameServiceStruct(equationRepo, attemptRepo, progressRepo, userRepo)
+	directorService := service.NewDirectorService(schoolRepo)
 
 	// Handler
 	authHandler := handler.NewAuthHandler(authService)
@@ -80,7 +81,7 @@ func main() {
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
 	studentHandler := handler.NewStudentHandler(studentService, statsService)
 	equationHandler := handler.NewEquationHandler(gameService)
-	directorHandler := handler.NewDirectorHandler(statsService, classService)
+	directorHandler := handler.NewDirectorHandler(statsService, classService, directorService)
 
 	mainRouter := mux.NewRouter()
 
@@ -217,7 +218,7 @@ func createAuthRouter(router *mux.Router, authHandler *handler.AuthHandler) *mux
 func createDirectorRouter(router *mux.Router, directorHandler *handler.DirectorHandler) *mux.Router {
 	directorRouter := router.PathPrefix("/director").Subrouter()
 
-	directorRouter.HandleFunc("/school-stats/{school_id}", directorHandler.GetSchoolStats).Methods("GET")
+	directorRouter.HandleFunc("/school-stats", directorHandler.GetSchoolStats).Methods("GET")
 	directorRouter.HandleFunc("/class-stats/{class_id}", directorHandler.GetClassStats).Methods("GET")
 	directorRouter.HandleFunc("/student-stats/{student_id}", directorHandler.GetStudentStats).Methods("GET")
 	directorRouter.HandleFunc("/classes/", directorHandler.GetClassesBySchool).Methods("GET")

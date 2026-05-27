@@ -21,6 +21,7 @@ import SectionsPage from "./pages/admin/SectionsPage/SectionsPage";
 import EquationTypesPage from "./pages/admin/EquationTypesPage/EquationTypesPage";
 import SectionsEquationTypesPage from "./pages/admin/SectionsEquationTypesPage/SectionsEquationTypesPage";
 import DirectorSchoolStats from "./pages/director/DirectorStatsPage/DirectorStatsPage";
+import DirectorDashboard from "./pages/director/DirectorDashboard";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -139,6 +140,16 @@ function AppRoutes() {
                 }
             />
         
+            <Route 
+                path="/director/dashboard/" 
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <DirectorDashboard/>
+                    </ProtectedRoute>
+                }
+            />
+        
+
             <Route
                 path="/game"
                 element={
@@ -183,16 +194,7 @@ function AppRoutes() {
                     </ProtectedRoute>
                 } 
             />
-
-            <Route
-                path="/director/dashboard"
-                element={
-                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
-                        <div>Director</div>
-                    </ProtectedRoute>
-                }
-            />
-            
+         
         </Routes>
     );
 }

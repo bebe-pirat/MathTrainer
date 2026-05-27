@@ -251,3 +251,10 @@ SELECT
 FROM attempts
 JOIN section_equation_types ON section_equation_types.eqaution_type_id = attempts.equation_type_id
 GROUP BY student_id, section_id, equation_type_id;
+
+
+alter table schools 
+ADD director_id int NOT NULL DEFAULT 21;
+
+alter table schools 
+ADD CONSTRAINT schools_fk_director_id FOREIGN KEY (director_id) REFERENCES users(id);

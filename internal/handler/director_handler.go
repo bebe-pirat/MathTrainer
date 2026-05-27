@@ -11,14 +11,16 @@ import (
 )
 
 type DirectorHandler struct {
-	statsService service.StatsService
-	classService service.ClassService
+	statsService    service.StatsService
+	classService    service.ClassService
+	directorService service.DirectorService
 }
 
-func NewDirectorHandler(statsService service.StatsService, classService service.ClassService) *DirectorHandler {
+func NewDirectorHandler(statsService service.StatsService, classService service.ClassService, directorService service.DirectorService) *DirectorHandler {
 	return &DirectorHandler{
-		statsService: statsService,
-		classService: classService,
+		statsService:    statsService,
+		classService:    classService,
+		directorService: directorService,
 	}
 }
 
@@ -111,22 +113,31 @@ func (h *DirectorHandler) DeleteClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *DirectorHandler) GetSchoolStats(w http.ResponseWriter, r *http.Request) {
+
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	schoolId, err := strconv.Atoi(vars["school_id"])
+	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
-		http.Error(w, "school_id is required", http.StatusBadRequest)
-		slog.Error("school_id is required", "error", err)
+		http.Error(w, "invalid session", http.StatusUnauthorized)
+		slog.Error("failed to get session from cookie", "error", err)
 		return
 	}
 
-	stats, err := h.statsService.GetSchoolStats(ctx, schoolId)
+	id, err := h.directorService.GetSchoolIdByDirectorId(ctx, sessionData.UserID)
+	if err != nil {
+		http.Error(w, "failed to get directors school", http.StatusInternalServerError)
+		slog.Error("failed to get directors school", "error", err)
+		return
+	}
+
+	stats, err := h.statsService.GetSchoolStats(ctx, id)
 	if err != nil {
 		http.Error(w, "failed to get school stats", http.StatusInternalServerError)
 		slog.Error("failed to get school stats", "error", err)
 		return
 	}
+
+	slog.Info("show stats", "school", stats)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -191,11 +202,17 @@ func (h *DirectorHandler) GetStudentStats(w http.ResponseWriter, r *http.Request
 func (h *DirectorHandler) GetClassesBySchool(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	schoolId, err := strconv.Atoi(vars["school_id"])
+	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
-		slog.Error("bad request", "error", err)
+		http.Error(w, "invalid session", http.StatusUnauthorized)
+		slog.Error("failed to get session from cookie", "error", err)
+		return
+	}
+
+	schoolId, err := h.directorService.GetSchoolIdByDirectorId(ctx, sessionData.UserID)
+	if err != nil {
+		http.Error(w, "failed to get directors school", http.StatusInternalServerError)
+		slog.Error("failed to get directors school", "error", err)
 		return
 	}
 

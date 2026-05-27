@@ -1,21 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BASE_URL } from "../../constants";
-import LogoutButton from "../../components/LogoutButton/LogoutButton";
-import sharedStyles from "../../styles/shared.module.css";
-import styles from "./DirectorSchoolStats.module.css";
+import { BASE_URL } from "../../../constants";
+import LogoutButton from "../../../components/LogoutButton/LogoutButton";
+import sharedStyles from "../../../styles/shared.module.css";
+import styles from "./DirectorStatsPage.module.css";
 
 function DirectorSchoolStats() {
   const navigate = useNavigate();
-  const { schoolId } = useParams(); 
   const [stats, setStats] = useState(null);
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    Promise.all([fetchSchoolStats(), fetchClasses()]).finally(() => setLoading(false));
+  }, []);
+
   const fetchSchoolStats = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/director/school-stats/${schoolId}`, {
+      console.log(`${BASE_URL}/director/school-stats`)
+      const response = await fetch(`${BASE_URL}/director/school-stats`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Ошибка загрузки статистики школы");
@@ -26,10 +30,11 @@ function DirectorSchoolStats() {
       setError(err.message);
     }
   };
-
+  
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/director/classes?school_id=${schoolId}`, {
+      console.log(`${BASE_URL}/director/classes`)
+      const response = await fetch(`${BASE_URL}/director/classes`, {
         credentials: "include",
       });
       if (!response.ok) throw new Error("Ошибка загрузки списка классов");
@@ -40,20 +45,11 @@ function DirectorSchoolStats() {
     }
   };
 
-  useEffect(() => {
-    if (!schoolId) {
-      setError("Не указан идентификатор школы");
-      setLoading(false);
-      return;
-    }
-    Promise.all([fetchSchoolStats(), fetchClasses()]).finally(() => setLoading(false));
-  }, [schoolId]);
-
   const handleClassClick = (classId) => {
     navigate(`/director/class-stats/${classId}`);
   };
 
-  if (loading) return <div className={sharedStyles.loader}>Загрузка статистики...</div>;
+  if (loading) return <div className={sharedStyles.loader}>Загрузка статистики школы...</div>;
   if (error)
     return (
       <div className={sharedStyles.errorBox}>

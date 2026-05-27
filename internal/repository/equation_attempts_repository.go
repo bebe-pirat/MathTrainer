@@ -174,9 +174,9 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalCountAttempts(ctx context.Con
 func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsBySchoolId(ctx context.Context, schoolId int) (int, error) {
 	query := `
 		SELECT COUNT(*)
-		FROM attempts
-		JOIN users on users.id = attempts.student_id
-		JOIN classes on classes.id = users.class_id
+		FROM classes 
+		LEFT JOIN users ON classes.id = users.class_id
+		LEFT JOIN attempts ON users.id = attempts.student_id
 		WHERE classes.school_id = $1;
 	`
 
@@ -192,9 +192,9 @@ func (r *EquationAttemptsRepositoryStruct) GetTotalAttemptsBySchoolId(ctx contex
 func (r *EquationAttemptsRepositoryStruct) GetWrongAnswersBySchoolId(ctx context.Context, schoolId int) (int, error) {
 	query := `
 		SELECT COUNT(*)
-		FROM attempts
-		JOIN users on users.id = attempts.student_id
-		JOIN classes on classes.id = users.class_id
+		FROM classes 
+		LEFT JOIN users ON classes.id = users.class_id
+		LEFT JOIN attempts ON users.id = attempts.student_id
 		WHERE classes.school_id = $1 AND attempts.correct_answer = attempts.student_answer;
 	`
 
@@ -210,9 +210,9 @@ func (r *EquationAttemptsRepositoryStruct) GetWrongAnswersBySchoolId(ctx context
 func (r *EquationAttemptsRepositoryStruct) GetClassesAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.ClassShortStats, error) {
 	query := `
 		SELECT classes.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
-		FROM attempts
-		JOIN users on users.id = attempts.student_id
-		JOIN classes on classes.id = users.class_id
+		FROM classes
+		LEFT JOIN users ON classes.id = users.class_id
+		LEFT JOIN attempts ON users.id = attempts.student_id
 		WHERE classes.school_id = $1
 		GROUP BY classes.name;
 	`
@@ -248,11 +248,11 @@ func (r *EquationAttemptsRepositoryStruct) GetClassesAccuracyBySchoolId(ctx cont
 func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.EquationTypeStats, error) {
 	query := `
 		SELECT equation_types.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
-		FROM attempts
-		JOIN equation_types ON attempts.equation_type_id = equation_types.id
-		JOIN users ON attempts.student_id = users.id
-		JOIN classes ON users.class_id = classes.id
-		WHERE classes.school_id = 1
+		FROM classes 
+		LEFT JOIN users ON classes.id = users.class_id
+		LEFT JOIN attempts ON users.id = attempts.student_id
+		LEFT JOIN equation_types ON attempts.equation_type_id = equation_types.id
+		WHERE classes.school_id = $1
 		GROUP BY equation_types.name;
 	`
 

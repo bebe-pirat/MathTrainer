@@ -50,46 +50,36 @@ func (s *StatsServiceStruct) GetSchoolStats(ctx context.Context, schoolId int) (
 		return nil, err
 	}
 
-	// totalCount, err := s.attemptRepo.GetTotalAttemptsBySchoolId(ctx, schoolId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	totalCount, err := s.attemptRepo.GetTotalAttemptsBySchoolId(ctx, schoolId)
+	if err != nil {
+		return nil, err
+	}
 
-	// wrongCount, err := s.attemptRepo.GetWrongAnswersBySchoolId(ctx, schoolId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	wrongCount, err := s.attemptRepo.GetWrongAnswersBySchoolId(ctx, schoolId)
+	if err != nil {
+		return nil, err
+	}
 
-	// accuracy := float32(totalCount) / float32(wrongCount) * 100.0
+	accuracy := float32(totalCount) / float32(wrongCount) * 100.0
 
-	// equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyBySchoolId(ctx, schoolId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyBySchoolId(ctx, schoolId)
+	if err != nil {
+		return nil, err
+	}
 
-	// classStats, err := s.attemptRepo.GetClassesAccuracyBySchoolId(ctx, schoolId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return &model.SchoolStats{
-	// 	StudentsCount:       countStudents,
-	// 	ClassesCount:        len(classes),
-	// 	TotalEquationSolved: totalCount,
-	// 	WrongAnswers:        wrongCount,
-	// 	Accuracy:            accuracy,
-	// 	EquationTypes:       equationTypes,
-	// 	Classes:             classStats,
-	// }, nil
+	classStats, err := s.attemptRepo.GetClassesAccuracyBySchoolId(ctx, schoolId)
+	if err != nil {
+		return nil, err
+	}
 
 	return &model.SchoolStats{
 		StudentsCount:       countStudents,
 		ClassesCount:        len(classes),
-		TotalEquationSolved: 0,
-		WrongAnswers:        0,
-		Accuracy:            0,
-		EquationTypes:       nil,
-		Classes:             nil,
+		TotalEquationSolved: totalCount,
+		WrongAnswers:        wrongCount,
+		Accuracy:            accuracy,
+		EquationTypes:       equationTypes,
+		Classes:             classStats,
 	}, nil
 }
 
