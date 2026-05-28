@@ -12,10 +12,10 @@ import (
 
 type DirectorHandler struct {
 	statsService service.StatsService
-	classService service.ClassServiceStruct
+	classService service.ClassService
 }
 
-func NewDirectorHandler(statsService service.StatsService, classService service.ClassServiceStruct) *DirectorHandler {
+func NewDirectorHandler(statsService service.StatsService, classService service.ClassService) *DirectorHandler {
 	return &DirectorHandler{
 		statsService: statsService,
 		classService: classService,
@@ -136,8 +136,80 @@ func (h *DirectorHandler) GetSchoolStats(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-// director
-// GET director/classes?school_id= +
-// POST director/classes +
-// DELETE director/classesid +
-// GET /director/stats +
+func (h *DirectorHandler) GetClassStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	classId, err := strconv.Atoi(vars["class_id"])
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("bad request", "error", err)
+		return
+	}
+
+	classStats, err := h.statsService.GetClassStats(ctx, classId)
+	if err != nil {
+		http.Error(w, "failed to get class's stats", http.StatusInternalServerError)
+		slog.Error("failed to get class's stats", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(classStats); err != nil {
+		slog.Error("serialization faild", "error", err)
+	}
+}
+
+func (h *DirectorHandler) GetStudentStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	studentId, err := strconv.Atoi(vars["student_id"])
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("bad request", "error", err)
+		return
+	}
+
+	studentStats, err := h.statsService.GetStudentStats(ctx, studentId)
+	if err != nil {
+		http.Error(w, "failed to get students stats", http.StatusBadRequest)
+		slog.Error("failed to get students stats", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(studentStats); err != nil {
+		slog.Error("serialization faild", "error", err)
+	}
+}
+
+func (h *DirectorHandler) GetClassesBySchool(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	schoolId, err := strconv.Atoi(vars["school_id"])
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		slog.Error("bad request", "error", err)
+		return
+	}
+
+	classes, err := h.classService.GetClassesBySchool(ctx, schoolId)
+	if err != nil {
+		http.Error(w, "failed to get classes in school", http.StatusBadRequest)
+		slog.Error("failed to get classes in school", "error", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(classes); err != nil {
+		slog.Error("serialization faild", "error", err)
+	}
+}

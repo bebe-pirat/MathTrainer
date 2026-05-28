@@ -125,7 +125,7 @@ function EquationTypeModal({ isOpen, onClose, onSave, initialData = null }) {
       <div className={styles.modalContent}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>
-            {initialData ? "Редактировать тип уравнения" : "Создать тип уравнения"}
+            {initialData ? "Редактировать тип примера" : "Создать тип примера"}
           </h3>
           <button className={styles.modalClose} onClick={onClose}>✕</button>
         </div>

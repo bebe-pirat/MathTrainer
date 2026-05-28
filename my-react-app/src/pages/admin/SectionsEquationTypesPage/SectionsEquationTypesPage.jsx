@@ -55,7 +55,7 @@ function SectionsEquationTypesPage() {
       const res = await fetch(`${BASE_URL}/admin/equation-types`, {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Ошибка загрузки типов уравнений");
+      if (!res.ok) throw new Error("Ошибка загрузки типов примеров");
       const data = await res.json();
       setEquationTypes(data);
     } catch (err) {
@@ -73,7 +73,7 @@ function SectionsEquationTypesPage() {
   const handleAddLink = async (e) => {
     e.preventDefault();
     if (!selectedSectionId || !selectedEquationTypeId) {
-      alert("Выберите секцию и тип уравнения");
+      alert("Выберите секцию и тип примера");
       return;
     }
     setSubmitting(true);
@@ -146,7 +146,7 @@ function SectionsEquationTypesPage() {
           <LogoutButton />
         </div>
 
-        <h1 className={sharedStyles.adminTitle}>Связи секций и типов уравнений</h1>
+        <h1 className={sharedStyles.adminTitle}>Связи секций и типов примеров</h1>
 
         <div className={styles.toolbar}>
           <button
@@ -168,7 +168,7 @@ function SectionsEquationTypesPage() {
                     <th>ID секции</th>
                     <th>Название секции</th>
                     <th>ID типа</th>
-                    <th>Тип уравнения</th>
+                    <th>Тип примера</th>
                     <th>Класс</th>
                     <th>Действия</th>
                   </tr>
@@ -232,7 +232,7 @@ function SectionsEquationTypesPage() {
                   </select>
                 </div>
                 <div className={sharedStyles.formGroup}>
-                  <label>Тип уравнения</label>
+                  <label>Тип примера</label>
                   <select
                     className={sharedStyles.formSelect}
                     value={selectedEquationTypeId}

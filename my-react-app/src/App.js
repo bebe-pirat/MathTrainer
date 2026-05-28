@@ -20,6 +20,7 @@ import StudentAttemptsPage from "./pages/teacher/StudentAttemptsPage/StudentAtte
 import SectionsPage from "./pages/admin/SectionsPage/SectionsPage";
 import EquationTypesPage from "./pages/admin/EquationTypesPage/EquationTypesPage";
 import SectionsEquationTypesPage from "./pages/admin/SectionsEquationTypesPage/SectionsEquationTypesPage";
+import DirectorSchoolStats from "./pages/director/DirectorStatsPage/DirectorStatsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -129,6 +130,15 @@ function AppRoutes() {
                 }
             />
 
+            <Route 
+                path="/director/school-stats/" 
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <DirectorSchoolStats/>
+                    </ProtectedRoute>
+                }
+            />
+        
             <Route
                 path="/game"
                 element={

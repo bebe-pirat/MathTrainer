@@ -31,7 +31,7 @@ function GamePage() {
       body: JSON.stringify(sectionId),
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Ошибка загрузки уравнений");
+        if (!res.ok) throw new Error("Ошибка загрузки примеров");
         return res.json();
       })
       .then((data) => {
@@ -98,9 +98,9 @@ function GamePage() {
     }
   };
 
-  if (loading) return <div className={styles.loader}>Загрузка уравнений...</div>;
+  if (loading) return <div className={styles.loader}>Загрузка примеров...</div>;
   if (error) return <div className={styles.loader}>Ошибка: {error}</div>;
-  if (!equations.length) return <div className={styles.loader}>Нет уравнений для этого уровня</div>;
+  if (!equations.length) return <div className={styles.loader}>Нет примеров для этого уровня</div>;
 
   return (
     <div className={styles.page}>
@@ -114,7 +114,7 @@ function GamePage() {
           </button>
         </div>
 
-        <h1 className={styles.title}>Решение уравнений</h1>
+        <h1 className={styles.title}>Решение примеров</h1>
         <div className={styles.levelInfo}>
           Уровень {levelOrder} • Секция {sectionId}
         </div>

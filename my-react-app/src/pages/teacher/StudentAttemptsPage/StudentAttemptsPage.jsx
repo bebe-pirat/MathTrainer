@@ -21,7 +21,7 @@ function StudentAttemptsPage() {
       const res = await fetch(`${BASE_URL}/teacher/equation-types?student_id=${studentId}`, {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Ошибка загрузки типов уравнений");
+      if (!res.ok) throw new Error("Ошибка загрузки типов примеров");
       const data = await res.json();
       setEquationTypes(data);
     } catch (err) {
@@ -112,7 +112,7 @@ function StudentAttemptsPage() {
         {/* Фильтр по типам уравнений */}
         <div className={styles.filterBar}>
           <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Тип уравнения</label>
+            <label className={styles.filterLabel}>Тип примера</label>
             <select
               className={sharedStyles.formSelect}
               value={selectedTypeId}
@@ -148,7 +148,7 @@ function StudentAttemptsPage() {
               <thead>
                 <tr>
                   <th>Дата и время</th>
-                  <th>Уравнение</th>
+                  <th>Пример</th>
                   <th>Тип</th>
                   <th>Ответ ученика</th>
                   <th>Правильный ответ</th>

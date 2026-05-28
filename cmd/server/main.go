@@ -80,6 +80,7 @@ func main() {
 	teacherHandler := handler.NewTeacherHandler(teacherService, statsService)
 	studentHandler := handler.NewStudentHandler(studentService, statsService)
 	equationHandler := handler.NewEquationHandler(gameService)
+	directorHandler := handler.NewDirectorHandler(statsService, classService)
 
 	mainRouter := mux.NewRouter()
 
@@ -88,9 +89,10 @@ func main() {
 	createTeacherRouter(mainRouter, teacherHandler)
 	createStudentRouter(mainRouter, studentHandler)
 	createEquationRouter(mainRouter, equationHandler)
+	createDirectorRouter(mainRouter, directorHandler)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3001"},
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
@@ -210,4 +212,15 @@ func createAuthRouter(router *mux.Router, authHandler *handler.AuthHandler) *mux
 	authRouter.HandleFunc("/session", authHandler.CheckSession).Methods("GET")
 
 	return authRouter
+}
+
+func createDirectorRouter(router *mux.Router, directorHandler *handler.DirectorHandler) *mux.Router {
+	directorRouter := router.PathPrefix("/director").Subrouter()
+
+	directorRouter.HandleFunc("/school-stats/{school_id}", directorHandler.GetSchoolStats).Methods("GET")
+	directorRouter.HandleFunc("/class-stats/{class_id}", directorHandler.GetClassStats).Methods("GET")
+	directorRouter.HandleFunc("/student-stats/{student_id}", directorHandler.GetStudentStats).Methods("GET")
+	directorRouter.HandleFunc("/classes/", directorHandler.GetClassesBySchool).Methods("GET")
+
+	return directorRouter
 }

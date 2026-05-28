@@ -27,7 +27,7 @@ function EquationTypesPage() {
       let url = `${BASE_URL}/admin/equation-types`;
       if (filterClass) url += `?class=${filterClass}`;
       const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Ошибка загрузки типов уравнений");
+      if (!res.ok) throw new Error("Ошибка загрузки типов примеров");
       const data = await res.json();
       setTypes(data);
     } catch (err) {
@@ -90,7 +90,7 @@ function EquationTypesPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Удалить тип уравнения?")) return;
+    if (!window.confirm("Удалить тип примера?")) return;
     try {
       const res = await fetch(`${BASE_URL}/admin/equation-types/${id}`, {
         method: "DELETE",
@@ -149,7 +149,7 @@ function EquationTypesPage() {
           <LogoutButton />
         </div>
 
-        <h1 className={sharedStyles.adminTitle}>Типы уравнений</h1>
+        <h1 className={sharedStyles.adminTitle}>Типы примеров</h1>
 
         <div className={styles.toolbar}>
           <div className={styles.filterGroup}>
@@ -173,7 +173,7 @@ function EquationTypesPage() {
 
         <div className={sharedStyles.formCard}>
           {types.length === 0 ? (
-            <div className={sharedStyles.emptyMessage}>Нет типов уравнений</div>
+            <div className={sharedStyles.emptyMessage}>Нет типов примеров</div>
           ) : (
             <div className={sharedStyles.dataTableWrapper}>
               <table className={sharedStyles.dataTable}>

@@ -97,7 +97,7 @@ function ClassStatistics() {
         {/* Точность по типам уравнений */}
         {stats.equation_types_stats && stats.equation_types_stats.length > 0 && (
           <div className={styles.statsCard}>
-            <h3>Точность по типам уравнений</h3>
+            <h3>Точность по типам примеров</h3>
             <div className={styles.typeStats}>
               {stats.equation_types_stats.map((type, idx) => (
                 <div key={idx} className={styles.typeRow}>
