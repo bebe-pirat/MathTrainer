@@ -22,6 +22,10 @@ import EquationTypesPage from "./pages/admin/EquationTypesPage/EquationTypesPage
 import SectionsEquationTypesPage from "./pages/admin/SectionsEquationTypesPage/SectionsEquationTypesPage";
 import DirectorSchoolStats from "./pages/director/DirectorStatsPage/DirectorStatsPage";
 import DirectorDashboard from "./pages/director/DirectorDashboard";
+import DirectorClassStats from "./pages/director/DirectorClassesStatsPage/DirectorClassStatsPage";
+import DirectorClassesList from "./pages/director/DirectorClassesList/DirectorClassesList";
+import DirectorStudentStatsPage from "./pages/director/DirectorStudentStatsPage";
+import TeacherStudentStatsPage from "./pages/teacher/TeacherStudentStatsPage";
 
 function AppRoutes() {
     const { user, loading } = useAuth();
@@ -149,6 +153,32 @@ function AppRoutes() {
                 }
             />
         
+            <Route
+                path="/director/class-stats/:classId"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <DirectorClassStats/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/director/student-stats/:studentId"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <DirectorStudentStatsPage/>
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/director/classes"
+                element={
+                    <ProtectedRoute allowedRoles={[ROLES.HEAD]}>
+                        <DirectorClassesList/>
+                    </ProtectedRoute>
+                }
+            />
 
             <Route
                 path="/game"
@@ -185,6 +215,16 @@ function AppRoutes() {
                     </ProtectedRoute>
                 }
             />
+
+            <Route
+            path="/teacher/student-stats/:studentId"
+            element={
+                <ProtectedRoute allowedRoles={[ROLES.TEACHER]}>
+                    <TeacherStudentStatsPage/>
+                </ProtectedRoute>
+            }
+            />
+
 
             <Route 
                 path="/teacher/student-attempts/:studentId" 

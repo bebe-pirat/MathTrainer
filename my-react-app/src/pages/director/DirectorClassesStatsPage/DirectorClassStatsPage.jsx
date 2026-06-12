@@ -1,72 +1,59 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { BASE_URL } from "../../../constants";
+import LogoutButton from "../../../components/LogoutButton/LogoutButton";
 import sharedStyles from "../../../styles/shared.module.css";
-import styles from "./ClassStatisticsPage.module.css";
+import styles from "../../teacher/ClassStatisticsPage/ClassStatisticsPage.module.css";
 
-function ClassStatistics() {
+function DirectorClassStats() {
   const navigate = useNavigate();
+  const { classId } = useParams();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const fetchClassStats = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/director/class-stats/${classId}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Ошибка загрузки статистики класса");
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchClassStats();
-  }, []);
+  }, [classId]);
 
-  const fetchClassStats = async () => {
-    try {
-      const response = await fetch(BASE_URL + "/teacher/class/stats", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Ошибка загрузки статистики");
-      const data = await response.json();
-      setStats(data);
-    } catch (err) {
-      setError(err.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return <div className={styles.loader}>Загрузка статистики...</div>;
-  }
-
-  if (error) {
+  if (loading) return <div className={sharedStyles.loader}>Загрузка...</div>;
+  if (error)
     return (
-      <div className={styles.errorBox}>
+      <div className={sharedStyles.errorBox}>
         <p>Ошибка: {error}</p>
-        <button
-          className={sharedStyles.headerButton}
-          onClick={() => navigate("/teacher/dashboard")}
-        >
+        <button className={sharedStyles.formButton} onClick={() => navigate(-1)}>
           Назад
         </button>
       </div>
     );
-  }
-
-  if (!stats) {
-    return <div className={styles.noData}>Нет данных</div>;
-  }
+  if (!stats) return <div className={sharedStyles.emptyMessage}>Нет данных</div>;
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <button
-            className={sharedStyles.headerButton}
-            onClick={() => navigate("/teacher/dashboard")}
-          >
+    <div className={sharedStyles.dashboardPage}>
+      <div className={sharedStyles.dashboardContainer}>
+        <div className={sharedStyles.dashboardHeader}>
+          <button className={sharedStyles.headerButton} onClick={() => navigate(-1)}>
             Назад
           </button>
+          <LogoutButton />
         </div>
 
-        <h1 className={styles.title}>Статистика класса</h1>
-
+        <h1 className={sharedStyles.dashboardTitle}>Статистика класса</h1>
         {/* Общая статистика */}
         <div className={styles.statsCard}>
           <h3>Общие показатели</h3>
@@ -156,7 +143,7 @@ function ClassStatistics() {
                         </button>
                         <button
                           className={sharedStyles.smallButton}
-                          onClick={() => navigate(`/teacher/student-stats/${student.student_id}`)}
+                          onClick={() => navigate(`/director/student-stats/${student.student_id}`)}
                         >
                           Посмотреть статистику
                         </button>
@@ -223,4 +210,4 @@ function ClassStatistics() {
   );
 }
 
-export default ClassStatistics;
+export default DirectorClassStats;

@@ -258,6 +258,7 @@ function TeachersPage() {
                   <th>ID класса</th>
                   <th>Создан</th>
                   <th>Последний вход</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -271,6 +272,16 @@ function TeachersPage() {
                     <td>{teacher.class_id || "—"}</td>
                     <td>{new Date(teacher.created_at).toLocaleDateString()}</td>
                     <td>{teacher.last_login ? new Date(teacher.last_login).toLocaleString() : "—"}</td>
+                    <td>
+                      <div className={sharedStyles.actionButtons}>
+                        <button className={sharedStyles.smallButton}>
+                          Редактировать
+                        </button>
+                        <button className={sharedStyles.smallButton}>
+                          Удалить
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

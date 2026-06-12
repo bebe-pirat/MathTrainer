@@ -110,7 +110,7 @@ function DirectorSchoolStats() {
             <div className={styles.typeStats}>
               {stats.equation_types.map((type, idx) => (
                 <div key={idx} className={styles.typeRow}>
-                  <div className={styles.typeName}>{type.name}</div>
+                  <div className={styles.typeName}>{type.type}</div>
                   <div className={sharedStyles.progressBarWrapper}>
                     <div className={sharedStyles.progressBar}>
                       <div
@@ -135,7 +135,6 @@ function DirectorSchoolStats() {
                   <tr>
                     <th>Название класса</th>
                     <th>Точность</th>
-                    <th>Действия</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,14 +149,6 @@ function DirectorSchoolStats() {
                           />
                         </div>
                         {cls.accuracy_percent}%
-                      </td>
-                      <td>
-                        <button
-                          className={sharedStyles.smallButton}
-                          onClick={() => handleClassClick(cls.id)}
-                        >
-                          Детали
-                        </button>
                       </td>
                     </tr>
                   ))}

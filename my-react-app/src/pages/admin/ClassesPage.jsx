@@ -178,6 +178,7 @@ function ClassesPage() {
                   <th>Степень</th>
                   <th>ID школы</th>
                   <th>Создан</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -188,6 +189,16 @@ function ClassesPage() {
                     <td>{cls.grade}</td>
                     <td>{cls.school_id}</td>
                     <td>{new Date(cls.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <div className={sharedStyles.actionButtons}>
+                        <button className={sharedStyles.smallButton}>
+                          Редактировать
+                        </button>
+                        <button className={sharedStyles.smallButton}>
+                          Удалить
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

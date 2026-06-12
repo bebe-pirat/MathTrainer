@@ -27,15 +27,22 @@ func NewDirectorHandler(statsService service.StatsService, classService service.
 func (h *DirectorHandler) GetClasses(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	schoolId, err := strconv.Atoi(vars["school_id"])
+	slog.Info("malchika")
+	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
-		http.Error(w, "school_id is required", http.StatusBadRequest)
-		slog.Error("failed to convert schoolId into int", "error", err)
+		http.Error(w, "invalid session", http.StatusUnauthorized)
+		slog.Error("failed to get session from cookie", "error", err)
 		return
 	}
 
-	classes, err := h.classService.GetClassesBySchool(ctx, schoolId)
+	id, err := h.directorService.GetSchoolIdByDirectorId(ctx, sessionData.UserID)
+	if err != nil {
+		http.Error(w, "failed to get directors school", http.StatusInternalServerError)
+		slog.Error("failed to get directors school", "error", err)
+		return
+	}
+
+	classes, err := h.classService.GetClassesBySchool(ctx, id)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		slog.Error("failed to get classes of school", "error", err)
@@ -150,6 +157,7 @@ func (h *DirectorHandler) GetSchoolStats(w http.ResponseWriter, r *http.Request)
 func (h *DirectorHandler) GetClassStats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	slog.Info("maaaa")
 	vars := mux.Vars(r)
 	classId, err := strconv.Atoi(vars["class_id"])
 	if err != nil {
@@ -157,6 +165,7 @@ func (h *DirectorHandler) GetClassStats(w http.ResponseWriter, r *http.Request) 
 		slog.Error("bad request", "error", err)
 		return
 	}
+	slog.Info("maaaa")
 
 	classStats, err := h.statsService.GetClassStats(ctx, classId)
 	if err != nil {
@@ -164,6 +173,7 @@ func (h *DirectorHandler) GetClassStats(w http.ResponseWriter, r *http.Request) 
 		slog.Error("failed to get class's stats", "error", err)
 		return
 	}
+	slog.Info("maaaa")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -202,13 +212,14 @@ func (h *DirectorHandler) GetStudentStats(w http.ResponseWriter, r *http.Request
 func (h *DirectorHandler) GetClassesBySchool(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	slog.Info("hello")
 	sessionData, err := getSessionFromCookie(r)
 	if err != nil {
 		http.Error(w, "invalid session", http.StatusUnauthorized)
 		slog.Error("failed to get session from cookie", "error", err)
 		return
 	}
-
+	slog.Info("hello")
 	schoolId, err := h.directorService.GetSchoolIdByDirectorId(ctx, sessionData.UserID)
 	if err != nil {
 		http.Error(w, "failed to get directors school", http.StatusInternalServerError)
@@ -216,6 +227,7 @@ func (h *DirectorHandler) GetClassesBySchool(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	slog.Info("hello")
 	classes, err := h.classService.GetClassesBySchool(ctx, schoolId)
 	if err != nil {
 		http.Error(w, "failed to get classes in school", http.StatusBadRequest)

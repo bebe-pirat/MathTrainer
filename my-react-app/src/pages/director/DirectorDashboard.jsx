@@ -33,22 +33,10 @@ function DirectorDashboard() {
             </div>
           </div>
 
-            { /* Параллель */}
-           <div
-            className={sharedStyles.dashboardCard}
-            onClick={() => navigate("/teacher/class-statistics")}
-          >
-            <GradeIcon className={sharedStyles.iconBlue}/>
-            <div className={sharedStyles.dashboardCardTitle}>Статистика параллелей</div>
-            <div className={sharedStyles.dashboardCardDesc}>
-              Просмотр статистики по параллелям 
-            </div>
-          </div>
-            
             { /* Класс */}
            <div
             className={sharedStyles.dashboardCard}
-            onClick={() => navigate("/teacher/class-statistics")}
+            onClick={() => navigate("/director/classes")}
           >
             <ClassIcon className={sharedStyles.iconBlue}/>
             <div className={sharedStyles.dashboardCardTitle}>Статистика классов и учеников</div>

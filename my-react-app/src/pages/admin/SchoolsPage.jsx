@@ -138,6 +138,7 @@ function SchoolsPage() {
                   <th>Название</th>
                   <th>Адрес</th>
                   <th>Создана</th>
+                  <th>Действия</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,6 +148,16 @@ function SchoolsPage() {
                     <td>{school.name}</td>
                     <td>{school.address}</td>
                     <td>{new Date(school.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <div className={sharedStyles.actionButtons}>
+                        <button className={sharedStyles.smallButton}>
+                          Редактировать
+                        </button>
+                        <button className={sharedStyles.smallButton}>
+                          Удалить
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

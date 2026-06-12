@@ -14,3 +14,8 @@ type Recommendation struct {
 	EquationType string  `json:"equation_type"`
 	Accuracy     float64 `json:"accuracy"`
 }
+
+type StudentInfo struct {
+	FullName  string `json:"fullname"`
+	ClassName string `json:"class_name"`
+}

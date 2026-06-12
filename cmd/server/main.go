@@ -172,7 +172,7 @@ func createTeacherRouter(router *mux.Router, teacherHandler *handler.TeacherHand
 
 	teacherRouter.HandleFunc("/class/stats", teacherHandler.GetClassStats).Methods("GET")
 	teacherRouter.HandleFunc("/students", teacherHandler.GetStudents).Methods("GET")
-	teacherRouter.HandleFunc("/students/stats", teacherHandler.GetStudentById).Methods("GET")
+	teacherRouter.HandleFunc("/students/stats/{student_id}", teacherHandler.GetStudentById).Methods("GET")
 	teacherRouter.HandleFunc("/students/attempts", teacherHandler.GetStudentsAttempts).Methods("GET")
 	teacherRouter.HandleFunc("/equation-types", teacherHandler.GetEquationTypesByStudentId).Methods("GET")
 
@@ -221,7 +221,7 @@ func createDirectorRouter(router *mux.Router, directorHandler *handler.DirectorH
 	directorRouter.HandleFunc("/school-stats", directorHandler.GetSchoolStats).Methods("GET")
 	directorRouter.HandleFunc("/class-stats/{class_id}", directorHandler.GetClassStats).Methods("GET")
 	directorRouter.HandleFunc("/student-stats/{student_id}", directorHandler.GetStudentStats).Methods("GET")
-	directorRouter.HandleFunc("/classes/", directorHandler.GetClassesBySchool).Methods("GET")
+	directorRouter.HandleFunc("/classes", directorHandler.GetClassesBySchool).Methods("GET")
 
 	return directorRouter
 }

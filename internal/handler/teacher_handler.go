@@ -92,7 +92,7 @@ func (h *TeacherHandler) GetStudentById(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 
 	vars := mux.Vars(r)
-	studentId, err := strconv.Atoi(vars["id"])
+	studentId, err := strconv.Atoi(vars["student_id"])
 	if err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		slog.Error("bad request", "error", err)

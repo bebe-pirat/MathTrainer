@@ -209,7 +209,7 @@ func (r *EquationAttemptsRepositoryStruct) GetWrongAnswersBySchoolId(ctx context
 
 func (r *EquationAttemptsRepositoryStruct) GetClassesAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.ClassShortStats, error) {
 	query := `
-		SELECT classes.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
+		SELECT classes.name as class_name, ROUND(COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0), 2)
 		FROM classes
 		LEFT JOIN users ON classes.id = users.class_id
 		LEFT JOIN attempts ON users.id = attempts.student_id
@@ -247,11 +247,11 @@ func (r *EquationAttemptsRepositoryStruct) GetClassesAccuracyBySchoolId(ctx cont
 
 func (r *EquationAttemptsRepositoryStruct) GetEquationTypeAccuracyBySchoolId(ctx context.Context, schoolId int) ([]model.EquationTypeStats, error) {
 	query := `
-		SELECT equation_types.name, COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0)
+		SELECT equation_types.name as equation_name, ROUND(COALESCE(SUM(CASE WHEN attempts.correct_answer = attempts.student_answer THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(attempts.id), 0), 0), 2)
 		FROM classes 
-		LEFT JOIN users ON classes.id = users.class_id
-		LEFT JOIN attempts ON users.id = attempts.student_id
-		LEFT JOIN equation_types ON attempts.equation_type_id = equation_types.id
+		JOIN users ON classes.id = users.class_id
+		JOIN attempts ON users.id = attempts.student_id
+		JOIN equation_types ON attempts.equation_type_id = equation_types.id
 		WHERE classes.school_id = $1
 		GROUP BY equation_types.name;
 	`

@@ -60,7 +60,7 @@ func (s *StatsServiceStruct) GetSchoolStats(ctx context.Context, schoolId int) (
 		return nil, err
 	}
 
-	accuracy := float32(totalCount) / float32(wrongCount) * 100.0
+	accuracy := float32(totalCount-wrongCount) / float32(totalCount) * 100.0
 
 	equationTypes, err := s.attemptRepo.GetEquationTypeAccuracyBySchoolId(ctx, schoolId)
 	if err != nil {
